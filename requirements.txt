@@ -13,7 +13,7 @@ clip==1.0
 cycler==0.10.0
 dataclasses==0.8
 decorator==4.4.2
-eden @ git+https://github.com/abraham-ai/eden.git@709b96453f2cad6759b312411a27f2a24347c7f3
+eden @ git+https://github.com/abraham-ai/eden.git@2ce9b2c4711d8d2523ee4d6fc03ddb68646c4f36
 fastapi==0.65.2
 filelock==3.0.12
 fsspec==2021.6.1
