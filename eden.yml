@@ -1,0 +1,7 @@
+config:
+    name: CLIP text to image
+    author: abraham
+  
+build:
+    - pip install -r requirements.txt
+    - pip install ml4a --no-deps
