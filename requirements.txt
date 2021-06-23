@@ -9,7 +9,6 @@ cachetools==4.2.2
 certifi==2021.5.30
 chardet==4.0.0
 click==8.0.1
-clip==1.0
 cycler==0.10.0
 dataclasses==0.8
 decorator==4.4.2
