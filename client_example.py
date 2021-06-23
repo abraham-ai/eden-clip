@@ -1,7 +1,7 @@
 from eden.client import Client
 from eden.datatypes import Image
 
-c = Client(url = 'http://dc8f1a4c31c1.ngrok.io', username= 'eden_clip_client',timeout= 990000)
+c = Client(url = 'your_url_to_server', username= 'eden_clip_client', timeout= 990000)
 
 setup_response = c.setup()
 
