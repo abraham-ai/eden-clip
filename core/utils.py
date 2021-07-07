@@ -27,7 +27,7 @@ def postprocess(img, pre_scaled=True):
     img = (255.0 * img).astype(np.uint8)
     return img
 
-def augment(into, up_noise, scaler, cutn=32, config = None, augs = None):
+def augment(into, up_noise, scaler, device, cutn=32, config = None, augs = None):
     # global up_noise, scaler
     sideX, sideY, channels = config.size[0], config.size[1], 3
     into = torch.nn.functional.pad(into, (sideX//2, sideX//2, sideX//2, sideX//2), mode='constant', value=0)
@@ -44,7 +44,7 @@ def augment(into, up_noise, scaler, cutn=32, config = None, augs = None):
         apper = torch.nn.functional.interpolate(apper, (int(224*scaler), int(224*scaler)), mode='bilinear', align_corners=True)
         p_s.append(apper)
     into = torch.cat(p_s, 0)
-    into = into + up_noise*torch.rand((into.shape[0], 1, 1, 1)).cuda()*torch.randn_like(into, requires_grad=False)
+    into = into + up_noise*torch.rand((into.shape[0], 1, 1, 1)).to(device)*torch.randn_like(into, requires_grad=False)
     return into
 
 def model(x, taming_transformers):
@@ -54,10 +54,10 @@ def model(x, taming_transformers):
     return i
 
 
-def ascend_txt(lats,config, taming_transformers, up_noise , scaler, cutn, augs, perceptor):
+def ascend_txt(lats,config, taming_transformers, up_noise , scaler, cutn, augs, perceptor, device):
     # global lats
     out = model(lats(), taming_transformers = taming_transformers)
-    into = augment((out.clip(-1, 1) + 1) / 2, up_noise , scaler, cutn, config, augs)
+    into = augment((out.clip(-1, 1) + 1) / 2, up_noise , scaler, cutn, config, augs, device = device)
     into = normalization(into)
     iii = perceptor.encode_image(into)    
 

@@ -40,7 +40,7 @@ my_args = {
     args = my_args
 )
 def run(config):
-    img = generate(config, perceptor =  perceptor, preprocess = preprocess, taming_transformers = taming_transformers)
+    img = generate(config, perceptor =  perceptor, preprocess = preprocess, taming_transformers = taming_transformers, device = config['__gpu__'])
     return {
         'creation': Image(img)
     }

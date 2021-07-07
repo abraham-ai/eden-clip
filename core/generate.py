@@ -16,10 +16,8 @@ from .utils import (
     make_image
 )
 
-def generate(inputs, perceptor, preprocess , taming_transformers , img = None,):
-    # global perceptor
-    # global up_noise, scaler, dec, cutn
-    # global lats
+def generate(inputs, perceptor, preprocess , taming_transformers , device, img = None):
+
 
     current_config = {
         'text_inputs': [{
@@ -64,11 +62,9 @@ def generate(inputs, perceptor, preprocess , taming_transformers , img = None,):
     lr_decay_rate = config.lr_decay_rate
     save_frame = 0
     
-    
     torch.cuda.empty_cache()
     
-    
-    lats = Pars(img, config).cuda()    
+    lats = Pars(img, config, device = device).to(device)    
     mapper = [lats.normu]
     optimizer = torch.optim.AdamW([{'params': mapper, 
                                     'lr': config.learning_rate}], 
@@ -76,13 +72,13 @@ def generate(inputs, perceptor, preprocess , taming_transformers , img = None,):
     
     for text_input in config.text_inputs:
         tx = clip.tokenize(text_input['text'])
-        tx_embedding = perceptor.encode_text(tx.cuda()).detach().clone()
+        tx_embedding = perceptor.encode_text(tx.to(device)).detach().clone()
         text_input['embedding'] = tx_embedding
         
     for image_input in config.image_inputs:
-        img_embedding = (torch.nn.functional.interpolate(torch.tensor(imageio.imread(image_input['path'])).unsqueeze(0).permute(0, 3, 1, 2), (224, 224)) / 255).cuda()[:,:3]
+        img_embedding = (torch.nn.functional.interpolate(torch.tensor(imageio.imread(image_input['path'])).unsqueeze(0).permute(0, 3, 1, 2), (224, 224)) / 255).to(device)[:,:3]
         img_embedding = normalization(img_embedding)
-        img_embedding = perceptor.encode_image(img_embedding.cuda()).detach().clone()
+        img_embedding = perceptor.encode_image(img_embedding.to(device)).detach().clone()
         image_input['embedding'] = img_embedding
         
     # optimize
@@ -96,7 +92,8 @@ def generate(inputs, perceptor, preprocess , taming_transformers , img = None,):
             scaler = scaler, 
             cutn = cutn, 
             augs = Augmentations,
-            perceptor = perceptor
+            perceptor = perceptor,
+            device = device
         )
 
         loss = sum(loss1)
