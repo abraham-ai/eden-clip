@@ -57,8 +57,7 @@ def model(x, taming_transformers):
 def ascend_txt(lats,config, taming_transformers, up_noise , scaler, cutn, augs, perceptor, device):
     # global lats
     out = model(lats(), taming_transformers = taming_transformers)
-    into = augment((out.clip(-1, 1) + 1) / 2, up_noise , scaler, cutn, config, augs, device = device)
-    into = normalization(into)
+    into = augment((out.clip(-1, 1) + 1) / 2, up_noise , scaler, device, cutn, config, augs)   
     iii = perceptor.encode_image(into)    
 
 
