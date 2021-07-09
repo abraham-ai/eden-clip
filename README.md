@@ -15,10 +15,10 @@ python3 -m venv env-eden
 source env-eden/bin/activate
 ```
 
-3. Install eden
+3. Install eden from the `token` branch source
 
 ```
-pip install git+https://github.com/abraham-ai/eden.git --no-deps
+pip install git+https://github.com/abraham-ai/eden.git@token --no-deps
 ```
 
 4. Run the following snippet in a file:
@@ -60,6 +60,11 @@ config = {
 }
 run_response = c.run(config)
 
-pil_image = run_response['output']['creation']
-pil_image.save('saved_from_server.png')
+## one eternity later
+
+resp = c.fetch(token = run_response['token'])  ## might return {'status': 'running'}
+
+if resp['status'] == 'complete':
+    pil_image = resp['output']['creation']
+    pil_image.save('saved_from_server.png')
 ```
