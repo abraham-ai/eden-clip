@@ -19,11 +19,13 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # is this necessary?
 torch.multiprocessing.set_start_method('spawn', force=True)
 
+taming_transformers.setup('vqgan')
+print('setup complete')
+
 @eden_block.setup
 def setup_models():
-    global taming_transformers
-    taming_transformers.setup('vqgan')
-    print('setup complete')
+    pass
+    
     
 my_args = {
     'prompt': 'hello world',
