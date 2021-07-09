@@ -11,12 +11,11 @@ from .augmentation import Augmentations
 from .utils import (
     augment, 
     postprocess, 
-    model, 
     ascend_txt, 
     make_image
 )
 
-def generate(inputs, perceptor, preprocess , taming_transformers , device, img = None):
+def generate(inputs, perceptor, preprocess , model , device, img = None):
 
 
     current_config = {
@@ -61,9 +60,7 @@ def generate(inputs, perceptor, preprocess , taming_transformers , device, img =
     lr_decay_after = config.lr_decay_after
     lr_decay_rate = config.lr_decay_rate
     save_frame = 0
-    
-    torch.cuda.empty_cache()
-    
+        
     lats = Pars(img, config, device = device).to(device)    
     mapper = [lats.normu]
     optimizer = torch.optim.AdamW([{'params': mapper, 
@@ -72,6 +69,10 @@ def generate(inputs, perceptor, preprocess , taming_transformers , device, img =
     
     for text_input in config.text_inputs:
         tx = clip.tokenize(text_input['text'])
+
+        """
+        messing up GPU ids here
+        """
         tx_embedding = perceptor.encode_text(tx.to(device)).detach().clone()
         text_input['embedding'] = tx_embedding
         
@@ -87,7 +88,7 @@ def generate(inputs, perceptor, preprocess , taming_transformers , device, img =
         loss1 = ascend_txt(
             lats= lats, 
             config = config, 
-            taming_transformers = taming_transformers, 
+            transformer_model = model, 
             up_noise = up_noise, 
             scaler = scaler, 
             cutn = cutn, 
@@ -117,5 +118,5 @@ def generate(inputs, perceptor, preprocess , taming_transformers , device, img =
                 g['weight_decay'] = 0
                 
 
-    img = np.array(make_image(lats = lats, taming_transformers = taming_transformers))
+    img = np.array(make_image(lats = lats, model = model, device = device))
     return img

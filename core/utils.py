@@ -28,7 +28,6 @@ def postprocess(img, pre_scaled=True):
     return img
 
 def augment(into, up_noise, scaler, device, cutn=32, config = None, augs = None):
-    # global up_noise, scaler
     sideX, sideY, channels = config.size[0], config.size[1], 3
     into = torch.nn.functional.pad(into, (sideX//2, sideX//2, sideX//2, sideX//2), mode='constant', value=0)
     into = augs(into)
@@ -47,16 +46,21 @@ def augment(into, up_noise, scaler, device, cutn=32, config = None, augs = None)
     into = into + up_noise*torch.rand((into.shape[0], 1, 1, 1)).to(device)*torch.randn_like(into, requires_grad=False)
     return into
 
-def model(x, taming_transformers):
+def transformer_forward_pass(x, model, device):
+
+    # taming_transformers.model.post_quant_conv.to(device)
+    # taming_transformers.model.decoder.to(device)
+
     o_i2 = x
-    o_i3 = taming_transformers.model.post_quant_conv(o_i2)
-    i = taming_transformers.model.decoder(o_i3)
+    o_i3 = model.post_quant_conv(o_i2)
+    i = model.decoder(o_i3)
     return i
 
 
-def ascend_txt(lats,config, taming_transformers, up_noise , scaler, cutn, augs, perceptor, device):
-    # global lats
-    out = model(lats(), taming_transformers = taming_transformers)
+def ascend_txt(lats,config, transformer_model, up_noise , scaler, cutn, augs, perceptor, device):
+
+    out = transformer_forward_pass(lats(), model = transformer_model, device = device)
+
     into = augment((out.clip(-1, 1) + 1) / 2, up_noise , scaler, device, cutn, config, augs)   
     iii = perceptor.encode_image(into)    
 
@@ -70,9 +74,9 @@ def ascend_txt(lats,config, taming_transformers, up_noise , scaler, cutn, augs, 
     all_losses = t_losses + i_losses
     return all_losses
 
-def make_image(lats, taming_transformers):
+def make_image(lats, model, device):
     with torch.no_grad():
-        alnot = (model(lats(), taming_transformers = taming_transformers).cpu().clip(-1, 1) + 1) / 2
+        alnot = (transformer_forward_pass(lats(), model = model, device = device).cpu().clip(-1, 1) + 1) / 2
         img = postprocess(alnot.cpu()[0])
     img = PIL.Image.fromarray(img.astype(np.uint8)).convert('RGB')
     return img
