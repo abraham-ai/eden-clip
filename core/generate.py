@@ -15,43 +15,26 @@ from .utils import (
     make_image
 )
 
-def generate(inputs, perceptor, preprocess , model , device, img = None):
+def generate(config, perceptor, preprocess, model, device, img = None):
 
-
-    current_config = {
-        'text_inputs': [{
-            'text': inputs['prompt'], 
-            'weight': 10.0
-        }],
-        'size': (inputs['width'], inputs['height']),
-        'num_iterations': inputs['iters'],
-        'weight_decay': inputs['weight_decay'],
-        'learning_rate': inputs['learning_rate'],
-        'lr_decay_after': inputs['learning_rate'],
-        'lr_decay_rate': inputs['lr_decay_rate'],
-        'batch_size': 1,
-        'cutn': 24,
-    }
-
-
-    assert 'text_inputs' in current_config or 'image_inputs' in config, 'Error: no text or image inputs'
+    assert 'text_inputs' in config or 'image_inputs' in config, 'Error: no text or image inputs'
     
-
-    config = EasyDict(current_config)
+    config = EasyDict(config)
     
     config.text_inputs = config.text_inputs if 'text_inputs' in config else []
     config.image_inputs = config.image_inputs if 'image_inputs' in config else []
-    config.size = config.size if 'size' in config else (512, 512)
+    config.width = config.width if 'width' in config else 512
+    config.height = config.height if 'height' in config else 512
+    config.size = (config.width, config.height)
     config.batch_size = config.batch_size if 'batch_size' in config else 1
     config.learning_rate = config.learning_rate if 'learning_rate' in config else 0.3
     config.lr_decay_after = config.lr_decay_after if 'lr_decay_after' in config else 400
     config.lr_decay_rate = config.lr_decay_rate if 'lr_decay_rate' in config else 0.995
     config.up_noise = config.up_noise if 'up_noise' in config else 0.11
     config.weight_decay = config.weight_decay if 'weight_decay' in config else 0.1
-    config.cutn = config.cutn if 'cutn' in config else 32
+    config.cutn = 2 #config.cutn if 'cutn' in config else 32
     config.num_iterations = config.num_iterations if 'num_iterations' in config else 1000
 
-    # print(config)   
 
     scaler = 1.0
     dec = config.weight_decay
@@ -61,7 +44,7 @@ def generate(inputs, perceptor, preprocess , model , device, img = None):
     lr_decay_rate = config.lr_decay_rate
     save_frame = 0
         
-    lats = Pars(img, config, device = device).to(device)    
+    lats = Pars(img, config, model, device = device).to(device)    
     mapper = [lats.normu]
     optimizer = torch.optim.AdamW([{'params': mapper, 
                                     'lr': config.learning_rate}], 
@@ -86,7 +69,7 @@ def generate(inputs, perceptor, preprocess , model , device, img = None):
     for itt in tqdm(range(config.num_iterations)):
         
         loss1 = ascend_txt(
-            lats= lats, 
+            lats = lats, 
             config = config, 
             transformer_model = model, 
             up_noise = up_noise, 
