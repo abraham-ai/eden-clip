@@ -5,18 +5,19 @@ import torch
 import clip
 import PIL
 
+from ml4a.models import taming_transformers
 from core.generate import generate
-
 from eden.block import BaseBlock
 from eden.datatypes import Image
 from eden.hosting import host_block
+
+
 
 RESULTS_DIR =  '/home/bzion/ml4a/abraham/static/results'  ## '/home/bzion/ml4a/abraham/static/results'
 
 eden_block = BaseBlock()
 
 def get_models(config):
-    from ml4a.models import taming_transformers
 
     gpu_idx = int(config['__gpu__'].replace("cuda:", ""))
     # setup_models(gpu_idx)
@@ -36,7 +37,7 @@ my_args = {
     'prompt': 'hello world',
     'width': 256,
     'height': 256,
-    'iters': 10,
+    'iters': 300,
     'weight_decay': 0.1,
     'learning_rate': 0.1,
     'lr_decay_after': 400,
@@ -58,10 +59,6 @@ def run(config):
     model = taming_transformers.model
     model.post_quant_conv = model.post_quant_conv.to(config['__gpu__'])
     model.decoder = model.decoder.to(config['__gpu__'])
-
-    # from copy import deepcopy
-
-    # taming_transformers.model = deepcopy(taming_transformers.model)
 
     try:
         img = generate(config, perceptor =  perceptor, preprocess = preprocess, 
