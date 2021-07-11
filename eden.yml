@@ -8,5 +8,5 @@ build:
     - pip install -r requirements.txt
 
 run:
-    - python3 server.py
+    - python3 eden_server.py
     
