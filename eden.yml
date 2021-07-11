@@ -5,7 +5,7 @@ config:
 build:
     - pip install ml4a --no-deps
     - pip install git+https://github.com/openai/CLIP.git --no-deps
-    - pip install -r requirements.txt
+    - pip install -r requirements.txt --quiet
 
 run:
     - python3 eden_server.py
