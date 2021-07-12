@@ -18,7 +18,7 @@ source env-eden/bin/activate
 3. Install eden from the `token` branch source
 
 ```
-pip install git+https://github.com/abraham-ai/eden.git@token --no-deps
+pip install git+https://github.com/abraham-ai/eden.git --no-deps
 ```
 
 4. Run the following snippet in a file:
