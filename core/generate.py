@@ -1,5 +1,6 @@
 import clip
 import torch
+import PIL
 import imageio
 import numpy as np
 from tqdm import tqdm
@@ -32,9 +33,8 @@ def generate(config, perceptor, preprocess, model, device, img = None):
     config.lr_decay_rate = config.lr_decay_rate if 'lr_decay_rate' in config else 0.995
     config.up_noise = config.up_noise if 'up_noise' in config else 0.11
     config.weight_decay = config.weight_decay if 'weight_decay' in config else 0.1
-    config.cutn = 2 #config.cutn if 'cutn' in config else 32
+    config.cutn = config.cutn if 'cutn' in config else 32
     config.num_iterations = config.num_iterations if 'num_iterations' in config else 1000
-
 
     scaler = 1.0
     dec = config.weight_decay
@@ -42,8 +42,12 @@ def generate(config, perceptor, preprocess, model, device, img = None):
     cutn = config.cutn
     lr_decay_after = config.lr_decay_after
     lr_decay_rate = config.lr_decay_rate
-    save_frame = 0
-        
+
+    if img is not None:
+        img = PIL.Image.fromarray(img)
+        img = img.resize((config.width, config.height), PIL.Image.BILINEAR)
+        img = np.array(img)
+
     lats = Pars(img, config, model, device = device).to(device)    
     mapper = [lats.normu]
     optimizer = torch.optim.AdamW([{'params': mapper, 
@@ -68,7 +72,7 @@ def generate(config, perceptor, preprocess, model, device, img = None):
     # optimize
     for itt in tqdm(range(config.num_iterations)):
         
-        loss1 = ascend_txt(
+        loss_ = ascend_txt(
             lats = lats, 
             config = config, 
             transformer_model = model, 
@@ -80,8 +84,7 @@ def generate(config, perceptor, preprocess, model, device, img = None):
             device = device
         )
 
-        loss = sum(loss1)
-        loss = loss.mean()
+        loss = sum(loss_).mean()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -100,6 +103,12 @@ def generate(config, perceptor, preprocess, model, device, img = None):
             for g in optimizer.param_groups:
                 g['weight_decay'] = 0
                 
+    # clean up
+    for text_input in config.text_inputs:
+        text_input['embedding'] = None
+    for image_input in config.image_inputs:
+        image_input['embedding'] = None
 
+    # final result
     img = np.array(make_image(lats = lats, model = model, device = device))
     return img

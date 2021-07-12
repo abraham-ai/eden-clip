@@ -5,6 +5,7 @@ import copy
 import torch 
 import clip
 import PIL
+from dotenv import load_dotenv
 
 from core.generate import generate
 
@@ -33,12 +34,15 @@ def get_models(config):
     return taming_transformers, perceptor, preprocess
 
 my_args = {
-    'prompt': 'hello world',
+    'text_inputs': [{
+        'text': 'hello world',
+        'weight': 10.0
+    }],
     'width': 256,
     'height': 256,
     'num_octaves': 3,
     'octave_scale': 2.0,
-    'num_iterations': 10,
+    'num_iterations': [10, 20, 30],
     'weight_decay': 0.1,
     'learning_rate': 0.1,
     'lr_decay_after': 400,
@@ -50,7 +54,7 @@ my_args = {
 )
 def run(config):
 
-    print("the config \n ")
+    print("config: \n")
     print(config)
     print(f"gpu for {config['username']}  is ", config['__gpu__'])
 
@@ -61,18 +65,9 @@ def run(config):
     model.decoder = model.decoder.to(config['__gpu__'])
 
     # from copy import deepcopy
-
     # taming_transformers.model = deepcopy(taming_transformers.model)
-
-    config['num_iterations'] = [100, 300, 300]
-    config['text_inputs'] = [{
-        'text': config['prompt'],
-        'weight': 10.0
-    }]
     
-
     try:
-
         width, height = config['width'], config['height']
         octave_scale, num_octaves = config['octave_scale'], config['num_octaves']
 
@@ -84,12 +79,31 @@ def run(config):
             config_octave['width'] = int(width * (octave_scale ** -(num_octaves-octave-1)))
             config_octave['height'] = int(height * (octave_scale ** -(num_octaves-octave-1)))
             config_octave['num_iterations'] = config['num_iterations'][octave]
-            
+            config_octave['lr_decay_after'] = int(config_octave['num_iterations'] * 0.5)
+
             img = generate(config_octave, perceptor = perceptor, preprocess = preprocess, model = model, device = config['__gpu__'], img = img)
 
-    except Exception as e:
+        load_dotenv()
+        RESULTS_DIR = os.environ['RESULTS_DIR']  
+        try:
+            last_idx = int(sorted(glob.glob(f'{RESULTS_DIR}/*'))[-1].split('/')[-1])
+        except:
+            last_idx = 0
+        idx = 1 + last_idx
+        output_dir = f'{RESULTS_DIR}/%04d'%idx
+        image_path = '{}/{}'.format(output_dir, 'image.jpg')
+        config_path = '{}/{}'.format(output_dir, 'config.json')        
 
-        print('prompt', config['prompt'])
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+
+        with open(config_path, 'w') as outfile:
+            json.dump(config, outfile)
+
+        PIL.Image.fromarray(img).save(image_path)
+
+
+    except Exception as e:
         raise Exception(str(e))
 
     return {
