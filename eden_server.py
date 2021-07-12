@@ -27,7 +27,7 @@ def get_models(config):
     print("SETUP CLIP ON cuda:{}".format(gpu_idx))
 
     taming_transformers.gpu = gpu_idx
-    taming_transformers.setup('imagenet')
+    taming_transformers.setup('vqgan')  ## 'imagenet' throws an error :(
     print("SETUP TAMING ON cuda:{}".format(gpu_idx))
     print(f'setup complete, transformer on: {id(taming_transformers)}')
 
