@@ -27,30 +27,38 @@ def postprocess(img, pre_scaled=True):
     img = (255.0 * img).astype(np.uint8)
     return img
 
+
 def augment(into, up_noise, scaler, device, cutn=32, config = None, augs = None):
     sideX, sideY, channels = config.size[0], config.size[1], 3
-    into = torch.nn.functional.pad(into, (sideX//2, sideX//2, sideX//2, sideX//2), mode='constant', value=0)
+    min_side = min(sideX, sideY)
+    into = torch.nn.functional.pad(
+        into, 
+        (min_side//2, min_side//2, min_side//2, min_side//2),
+        mode='constant', 
+        value=0
+    )
     into = augs(into)
     p_s = []
     for ch in range(cutn):
-        # size = torch.randint(int(.5*sideX), int(1.9*sideX), ())
-        size = int(torch.normal(1.2, .3, ()).clip(.43, 1.9) * sideX)
+        size = int(torch.normal(1.2, .3, ()).clip(.43, 1.9) * min_side)
         if ch > cutn - 4:
-            size = int(sideX*1.4)
-        offsetx = torch.randint(0, int(sideX*2 - size), ())
-        offsety = torch.randint(0, int(sideX*2 - size), ())
+            size = int(min(sideX, sideY)  * 1.4)
+        offsetx = torch.randint(0, int(sideX * 2 - size), ())
+        offsety = torch.randint(0, int(sideY * 2 - size), ())
         apper = into[:, :, offsetx:offsetx + size, offsety:offsety + size]
+        if apper.shape[2] == 0 or apper.shape[3] == 0:
+            apper = into
         apper = torch.nn.functional.interpolate(apper, (int(224*scaler), int(224*scaler)), mode='bilinear', align_corners=True)
         p_s.append(apper)
+        del apper
+
     into = torch.cat(p_s, 0)
-    into = into + up_noise*torch.rand((into.shape[0], 1, 1, 1)).to(device)*torch.randn_like(into, requires_grad=False)
+    into = into + up_noise * torch.rand((into.shape[0], 1, 1, 1)).to(device) * torch.randn_like(into, requires_grad=False)
+    del p_s
     return into
 
+
 def transformer_forward_pass(x, model, device):
-
-    # taming_transformers.model.post_quant_conv.to(device)
-    # taming_transformers.model.decoder.to(device)
-
     o_i2 = x
     o_i3 = model.post_quant_conv(o_i2)
     i = model.decoder(o_i3)
