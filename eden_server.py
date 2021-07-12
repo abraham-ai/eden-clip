@@ -7,8 +7,8 @@ import clip
 import PIL
 from dotenv import load_dotenv
 
-from ml4a.models import taming_transformers
 from core.generate import generate
+
 from eden.block import BaseBlock
 from eden.datatypes import Image
 from eden.hosting import host_block
@@ -17,6 +17,7 @@ eden_block = BaseBlock()
 eden_block.max_gpu_mem = 1.0
 
 def get_models(config):
+    from ml4a.models import taming_transformers
 
     gpu_idx = int(config['__gpu__'].replace("cuda:", ""))
     # setup_models(gpu_idx)
