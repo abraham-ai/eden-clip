@@ -20,16 +20,18 @@ def get_models(config):
     from ml4a.models import taming_transformers
 
     gpu_idx = int(config['__gpu__'].replace("cuda:", ""))
-    # setup_models(gpu_idx)
 
     perceptor, preprocess = clip.load('ViT-B/32', jit=False, device = 'cuda:' + str(gpu_idx))
     perceptor = perceptor.eval()
-    print("SETUP CLIP ON cuda:{}".format(gpu_idx))
 
     taming_transformers.gpu = gpu_idx
-    taming_transformers.setup('vqgan')  ## 'imagenet' throws an error :(
+    try:
+        taming_transformers.setup('vqgan')  ## 'imagenet' throws an error :(
+    except:
+        taming_transformers.setup('imagenet')
+
+    print("SETUP CLIP ON cuda:{}".format(gpu_idx))
     print("SETUP TAMING ON cuda:{}".format(gpu_idx))
-    print(f'setup complete, transformer on: {id(taming_transformers)}')
 
     return taming_transformers, perceptor, preprocess
 
@@ -49,8 +51,10 @@ my_args = {
     'lr_decay_rate': 0.995
 }    
 
+
 @eden_block.run(
-    args = my_args
+    args = my_args,
+    progress = True
 )
 def run(config):
 
@@ -64,14 +68,17 @@ def run(config):
     model.post_quant_conv = model.post_quant_conv.to(config['__gpu__'])
     model.decoder = model.decoder.to(config['__gpu__'])
 
-    # from copy import deepcopy
-    # taming_transformers.model = deepcopy(taming_transformers.model)
+    print(config)
     
     try:
         width, height = config['width'], config['height']
         octave_scale, num_octaves = config['octave_scale'], config['num_octaves']
 
         img = None
+
+        num_total_steps = sum(config['num_iterations'])
+        progress = config['__progress__']
+        progress_step_size = 1/num_total_steps
 
         for octave in range(3):
             config_octave = config.copy()
@@ -81,26 +88,26 @@ def run(config):
             config_octave['num_iterations'] = config['num_iterations'][octave]
             config_octave['lr_decay_after'] = int(config_octave['num_iterations'] * 0.5)
 
-            img = generate(config_octave, perceptor = perceptor, preprocess = preprocess, model = model, device = config['__gpu__'], img = img)
+            img = generate(config_octave, perceptor = perceptor, preprocess = preprocess, model = model, device = config['__gpu__'], img = img, progress = progress, progress_step_size = progress_step_size)
 
-        load_dotenv()
-        RESULTS_DIR = os.environ['RESULTS_DIR']  
-        try:
-            last_idx = int(sorted(glob.glob(f'{RESULTS_DIR}/*'))[-1].split('/')[-1])
-        except:
-            last_idx = 0
-        idx = 1 + last_idx
-        output_dir = f'{RESULTS_DIR}/%04d'%idx
-        image_path = '{}/{}'.format(output_dir, 'image.jpg')
-        config_path = '{}/{}'.format(output_dir, 'config.json')        
+        # load_dotenv()
+        # RESULTS_DIR = os.environ['RESULTS_DIR']  
+        # try:
+        #     last_idx = int(sorted(glob.glob(f'{RESULTS_DIR}/*'))[-1].split('/')[-1])
+        # except:
+        #     last_idx = 0
+        # idx = 1 + last_idx
+        # output_dir = f'{RESULTS_DIR}/%04d'%idx
+        # image_path = '{}/{}'.format(output_dir, 'image.jpg')
+        # config_path = '{}/{}'.format(output_dir, 'config.json')        
 
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
+        # if not os.path.isdir(output_dir):
+        #     os.mkdir(output_dir)
 
-        with open(config_path, 'w') as outfile:
-            json.dump(config, outfile)
+        # with open(config_path, 'w') as outfile:
+        #     json.dump(config, outfile)
 
-        PIL.Image.fromarray(img).save(image_path)
+        # PIL.Image.fromarray(img).save(image_path)
 
 
     except Exception as e:
@@ -108,11 +115,10 @@ def run(config):
 
     return {
         'creation': Image(img),
-        'config': config
     }
 
 host_block(
     eden_block,
-    port = 5656,
-    max_num_workers = 4
+    port = 5454,
+    max_num_workers = 2
 )

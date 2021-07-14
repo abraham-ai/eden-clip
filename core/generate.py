@@ -16,7 +16,7 @@ from .utils import (
     make_image
 )
 
-def generate(config, perceptor, preprocess, model, device, img = None):
+def generate(config, perceptor, preprocess, model, device, img = None, progress = None, progress_step_size = None):
 
     assert 'text_inputs' in config or 'image_inputs' in config, 'Error: no text or image inputs'
     
@@ -102,6 +102,12 @@ def generate(config, perceptor, preprocess, model, device, img = None):
         else:
             for g in optimizer.param_groups:
                 g['weight_decay'] = 0
+
+        '''
+        update progress 
+        '''
+        if progress_step_size != None and progress != None:
+            progress.update(progress_step_size)
                 
     # clean up
     for text_input in config.text_inputs:
