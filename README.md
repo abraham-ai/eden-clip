@@ -32,10 +32,10 @@ if __name__ == '__main__':
     g.build_and_run()
 ```
 
-5. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5000`](https://github.com/Mayukhdeb/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
+5. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5454`](https://github.com/Mayukhdeb/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
 
 ```
-ngrok http 5000
+ngrok http 5454
 ```
 
 6. Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere. 
@@ -46,21 +46,33 @@ from eden.datatypes import Image
 
 c = Client(url = 'YOUR_NGROK_OR_LOCALHOST_URL', username= 'eden_clip_client', timeout= 990000)
 
-config = {
-    'prompt': 'abraham',
+config = config = {
+    'text_inputs': [
+            {
+        'text': 'blue',
+        'weight': 10.0,
+        },
+            {
+        'text': 'mushroom',
+        'weight': 20.0,
+        },
+    ],
     'width': 256,
     'height': 256,
-    'iters': 500,
+    'num_octaves': 3,
+    'octave_scale': 2.0,
+    'num_iterations': [20, 50, 100],
     'weight_decay': 0.1,
     'learning_rate': 0.1,
     'lr_decay_after': 400,
     'lr_decay_rate': 0.995
-}
+}   
+
 run_response = c.run(config)
 
 ## one eternity later
 
-resp = c.fetch(token = run_response['token'])  ## might return {'status': 'running'}
+resp = c.await_results(token = run_response['token'], show_progress = True)  
 
 if resp['status'] == 'complete':
     pil_image = resp['output']['creation']
