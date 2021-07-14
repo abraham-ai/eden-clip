@@ -46,7 +46,7 @@ from eden.datatypes import Image
 
 c = Client(url = 'YOUR_NGROK_OR_LOCALHOST_URL', username= 'eden_clip_client', timeout= 990000)
 
-config = config = {
+config = {
     'text_inputs': [
             {
         'text': 'blue',
