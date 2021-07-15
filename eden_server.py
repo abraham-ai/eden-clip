@@ -16,24 +16,57 @@ from eden.hosting import host_block
 eden_block = BaseBlock()
 eden_block.max_gpu_mem = 1.0
 
+
+pretrained_vqgan = {
+    'imagenet': {
+        'checkpoint': 'https://heibox.uni-heidelberg.de/f/867b05fc8c4841768640/?dl=1',
+        'config': 'https://heibox.uni-heidelberg.de/f/274fb24ed38341bfa753/?dl=1'
+    },
+    'wikiart': {
+        'checkpoint': 'http://mirror.io.community/blob/vqgan/wikiart_16384.ckpt',
+        'config': 'http://mirror.io.community/blob/vqgan/wikiart_16384.yaml'
+    },
+}
+
 def get_models(config):
-    from ml4a.models import taming_transformers
 
-    gpu_idx = int(config['__gpu__'].replace("cuda:", ""))
+    import taming.modules.losses
+    from taming.models.vqgan import VQModel
+    from omegaconf import OmegaConf
+    from ml4a.utils import downloads
 
-    perceptor, preprocess = clip.load('ViT-B/32', jit=False, device = 'cuda:' + str(gpu_idx))
+    print("the config is ")
+    print(config)
+
+    # load CLIP
+    perceptor, preprocess = clip.load('ViT-B/32', jit=False, device = config['__gpu__'])
     perceptor = perceptor.eval()
 
-    taming_transformers.gpu = gpu_idx
-    try:
-        taming_transformers.setup('vqgan')  ## 'imagenet' throws an error :(
-    except:
-        taming_transformers.setup('imagenet')
+    # load VQGAN
+    model_name = 'imagenet'
+    
+    checkpoint = downloads.download_data_file(
+        pretrained_vqgan[model_name]['checkpoint'],
+        'taming-transformers/{}/checkpoint.ckpt'.format(model_name))
 
-    print("SETUP CLIP ON cuda:{}".format(gpu_idx))
-    print("SETUP TAMING ON cuda:{}".format(gpu_idx))
+    config_file = downloads.download_data_file(
+        pretrained_vqgan[model_name]['config'],
+        'taming-transformers/{}/config.yaml'.format(model_name))
 
-    return taming_transformers, perceptor, preprocess
+    taming_config = OmegaConf.load(config_file)
+    model = VQModel(**taming_config.model.params)
+    sd = torch.load(checkpoint, map_location="cpu")["state_dict"]
+    missing, unexpected = model.load_state_dict(sd, strict=False)
+
+    model = model.eval()
+    model = model.to(config['__gpu__'])
+    #torch.set_grad_enabled(False)
+
+    print("SETUP CLIP ON {}".format(config['__gpu__']))
+    print("SETUP TAMING ON {}".format(config['__gpu__']))
+
+    return model, perceptor, preprocess
+
 
 my_args = {
     'text_inputs': [{
@@ -50,8 +83,6 @@ my_args = {
     'lr_decay_after': 400,
     'lr_decay_rate': 0.995
 }    
-
-
 @eden_block.run(
     args = my_args,
     progress = True
@@ -62,9 +93,9 @@ def run(config):
     print(config)
     print(f"gpu for {config['username']}  is ", config['__gpu__'])
 
-    taming_transformers, perceptor, preprocess = get_models(config = config)
+    model, perceptor, preprocess = get_models(config = config)
 
-    model = taming_transformers.model
+    #model = taming_transformers.model
     model.post_quant_conv = model.post_quant_conv.to(config['__gpu__'])
     model.decoder = model.decoder.to(config['__gpu__'])
 
