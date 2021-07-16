@@ -15,11 +15,10 @@ python3 -m venv env-eden
 source env-eden/bin/activate
 ```
 
-3. Install [taming-transformers](https://github.com/CompVis/taming-transformers)
+3. Download pretrained models for [taming-transformers](https://github.com/CompVis/taming-transformers).
 
-```git clone https://github.com/CompVis/taming-transformers
-cd taming-transformers
-pip install -e .
+```
+sh download_models.sh
 ```
 
 4. Install eden from the `token` branch source
@@ -54,6 +53,7 @@ from eden.datatypes import Image
 c = Client(url = 'YOUR_NGROK_OR_LOCALHOST_URL', username= 'eden_clip_client', timeout= 990000)
 
 config = {
+    'model_name': 'imagenet',
     'text_inputs': [
             {
         'text': 'blue',
