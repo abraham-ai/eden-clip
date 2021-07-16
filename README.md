@@ -15,13 +15,20 @@ python3 -m venv env-eden
 source env-eden/bin/activate
 ```
 
-3. Install eden from the `token` branch source
+3. Install [taming-transformers](https://github.com/CompVis/taming-transformers)
+
+```git clone https://github.com/CompVis/taming-transformers
+cd taming-transformers
+pip install -e .
+```
+
+4. Install eden from the `token` branch source
 
 ```
 pip install git+https://github.com/abraham-ai/eden.git --no-deps
 ```
 
-4. Run the following snippet in a file:
+5. Run the following snippet in a file:
 
 ```python
 from eden.github import GithubSource
@@ -32,13 +39,13 @@ if __name__ == '__main__':
     g.build_and_run()
 ```
 
-5. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5454`](https://github.com/Mayukhdeb/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
+6. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5454`](https://github.com/Mayukhdeb/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
 
 ```
 ngrok http 5454
 ```
 
-6. Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere. 
+7. Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere. 
 
 ```python
 from eden.client import Client
