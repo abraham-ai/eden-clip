@@ -114,7 +114,7 @@ def run(config):
         raise Exception(str(e))
 
     config.pop('__progress__')
-    
+
     return {
         'creation': Image(img),
         'config': config
