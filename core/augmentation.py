@@ -5,10 +5,7 @@ import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 
 
-# Augmentations = torch.nn.Sequential(
-#     torchvision.transforms.RandomHorizontalFlip(),
-#     torchvision.transforms.RandomAffine(24, (.1, .1))#, fill=0)
-# )
+
 
 
 def gaussian_sigma(x):
@@ -38,7 +35,21 @@ def gaussian_blur_scales(x):
         return TF.gaussian_blur(x, 3)
 
 
-def get_augmentations(config, device):
+def get_augmentations_0(config, device):
+    return torch.nn.Sequential(
+        torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.RandomAffine(24, (.1, .1))#, fill=0)
+    )
+
+def get_augmentations_1(config, device):
+    return torch.nn.Sequential(
+        T.RandomHorizontalFlip(),
+        T.RandomAffine(21, (.1, .1)),
+        T.RandomRotation(10),
+        T.ColorJitter(brightness=0.01, contrast=0.01, saturation=0.01, hue=0.01)
+    )
+
+def get_augmentations_2(config, device):
     return T.Compose([
         T.Lambda(lambda x: x - torch.randn_like(x).mul(0.02)),
         T.Pad(25, padding_mode='reflect'),
@@ -54,24 +65,25 @@ def get_augmentations(config, device):
             ]),
         ]),
         T.RandomChoice([
-            T.Lambda(lambda x: x - random_noise_scale(x, 16, 32, 8, device).mul(0.02)),
-            T.Lambda(lambda x: x - random_noise_scale(x, 32, 64, 8, device).mul(0.02)),
-            T.Lambda(lambda x: x - random_noise_scale(x, 64,128, 8, device).mul(0.02)),
-            T.Lambda(lambda x: x - random_noise_scale(x,128,256, 8, device).mul(0.02)),
+            T.Lambda(lambda x: x - random_noise_scale(x,  16,  32, 8, device).mul(0.02)),
+            T.Lambda(lambda x: x - random_noise_scale(x,  32,  64, 8, device).mul(0.02)),
+            T.Lambda(lambda x: x - random_noise_scale(x,  64, 128, 8, device).mul(0.02)),
+            T.Lambda(lambda x: x - random_noise_scale(x, 128, 256, 8, device).mul(0.02)),
         ]),
-        T.RandomRotation(19.57),
+        T.RandomRotation(15),
         T.Lambda(lambda x: x + torch.randn_like(x).mul(0.02)),
         T.Compose([
             T.Lambda(lambda x: random_size_crop(x, config.width, config.height, 16)),
             T.RandomChoice([
-                T.Lambda(lambda x: x),
                 T.Lambda(lambda x: gaussian_blur_scales(x)),
             ]),
-            T.Lambda(lambda x: F.interpolate(x, (224,224), mode='bicubic', align_corners=False)),
+            T.Lambda(lambda x: F.interpolate(x, (224, 224), mode='bicubic', align_corners=False)),
         ]),
         T.Lambda(lambda x: x + torch.randn_like(x).mul(0.02)),
         T.RandomHorizontalFlip(0.125)
-    #             T.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
+        #T.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
     ])
 
 
+def get_augmentations(config, device):
+    return get_augmentations_0(config, device)
