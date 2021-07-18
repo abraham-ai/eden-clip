@@ -1,4 +1,11 @@
 # eden-clip
+
+This is the first generator running on the [Abraham website](https://www.abraham.ai/create).
+
+The active generator is largely adapted from the LatentVisions notebooks series by [@advadnoun](https://twitter.com/advadnoun/), which shows how to combine [CLIP](https://github.com/openai/CLIP) and [VQGAN](https://github.com/CompVis/taming-transformers) to generate images from text. Additional contributions are sourced from [@RiversHaveWings](https://twitter.com/RiversHaveWings) and [@hotgrits](https://twitter.com/torridgristle). Further improvements have been learned from the long tail of people openly experimenting with CLIP online and providing various recommendations on how to structure prompts, choose hyper-parameters, and other insights.
+
+# how to run
+
 hosting openAI CLIP's text to image pipeline with [eden](https://github.com/abraham-ai/eden)
 
 Running locally through eden (no need to clone the repo):
@@ -32,13 +39,13 @@ pip install git+https://github.com/abraham-ai/eden.git --no-deps
 ```python
 from eden.github import GithubSource
 
-g = GithubSource(url = "https://github.com/Mayukhdeb/eden-clip.git")
+g = GithubSource(url = "https://github.com/abraham-ai/eden-clip.git")
 
 if __name__ == '__main__':
     g.build_and_run()
 ```
 
-6. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5454`](https://github.com/Mayukhdeb/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
+6. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5454`](https://github.com/abraham-ai/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
 
 ```
 ngrok http 5454

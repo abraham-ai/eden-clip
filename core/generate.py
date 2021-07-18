@@ -8,7 +8,7 @@ from tqdm import tqdm
 from .pars import Pars
 from .easy_dict import EasyDict
 from .constants import normalization
-from .augmentation import Augmentations
+from .augmentation import get_augmentations
 from .utils import (
     augment, 
     postprocess, 
@@ -49,17 +49,14 @@ def generate(config, perceptor, preprocess, model, device, img = None, progress 
         img = np.array(img)
 
     lats = Pars(img, config, model, device = device).to(device)    
+    augmentations = get_augmentations(config, device)
     mapper = [lats.normu]
     optimizer = torch.optim.AdamW([{'params': mapper, 
                                     'lr': config.learning_rate}], 
                                   weight_decay=dec)
-    
+
     for text_input in config.text_inputs:
         tx = clip.tokenize(text_input['text'])
-
-        """
-        messing up GPU ids here
-        """
         tx_embedding = perceptor.encode_text(tx.to(device)).detach().clone()
         text_input['embedding'] = tx_embedding
         
@@ -79,7 +76,7 @@ def generate(config, perceptor, preprocess, model, device, img = None, progress 
             up_noise = up_noise, 
             scaler = scaler, 
             cutn = cutn, 
-            augs = Augmentations,
+            augs = augmentations,
             perceptor = perceptor,
             device = device
         )
