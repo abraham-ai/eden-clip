@@ -124,5 +124,5 @@ host_block(
     eden_block,
     port = 5454,
     max_num_workers = 4,
-    redis_port = 6381
+    redis_port = 6379
 )
