@@ -122,7 +122,8 @@ def run(config):
 
 host_block(
     eden_block,
-    port = 5454,
-    max_num_workers = 4,
-    redis_port = 6379
+    port = 4545,
+    max_num_workers = 2,
+    redis_port = 6381,
+    exclude_gpu_ids = [2,3]
 )
