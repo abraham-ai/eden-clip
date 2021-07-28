@@ -22,7 +22,15 @@ python3 -m venv env-eden
 source env-eden/bin/activate
 ```
 
-3. Download pretrained models for [taming-transformers](https://github.com/CompVis/taming-transformers).
+3. Install Redis.
+
+```
+sudo apt-get install redis-server
+```
+
+and [configure it properly](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04).
+
+4. Download pretrained models for [taming-transformers](https://github.com/CompVis/taming-transformers).
 
 ```
 sh download_models.sh
