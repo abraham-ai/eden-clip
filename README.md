@@ -36,7 +36,7 @@ and [configure it properly](https://www.digitalocean.com/community/tutorials/how
 sh download_models.sh
 ```
 
-4. Install eden from the `token` branch source
+4. Install eden from the github repo
 
 ```
 pip install git+https://github.com/abraham-ai/eden.git --no-deps
