@@ -7,9 +7,11 @@ FROM python:3.8
 WORKDIR /usr/local/
 COPY . .
 
-RUN sudo apt-get install redis-server
-RUN sh download_models.sh
-RUN pip --upgrade pip
+RUN apt-get update
+
+RUN apt-get -y install redis-server
+# RUN sh download_models.sh
+RUN pip install --upgrade pip
 
 RUN pip install celery
 RUN pip install git+https://github.com/abraham-ai/eden.git --no-deps
