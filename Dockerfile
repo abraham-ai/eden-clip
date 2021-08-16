@@ -7,7 +7,12 @@ FROM python:3.8
 WORKDIR /usr/local/
 COPY . .
 
+RUN sudo apt-get install redis-server
+RUN sh download_models.sh
 RUN pip --upgrade pip
+
+RUN pip install celery
+RUN pip install git+https://github.com/abraham-ai/eden.git --no-deps
 RUN pip install ml4a --no-deps
 RUN pip install git+https://github.com/openai/CLIP.git --no-deps
 RUN pip install -r requirements.txt
