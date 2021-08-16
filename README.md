@@ -100,3 +100,14 @@ if resp['status'] == 'complete':
     pil_image = resp['output']['creation']
     pil_image.save('saved_from_server.png')
 ```
+## Running with `docker`/`nvidia-docker`
+
+Building from Dockerfile
+```
+docker build . --file Dockerfile --tag eden-clip-test-container
+```
+
+Running on `localhost:4545`
+```
+docker run -p 4545:4545 --network="host"  eden-clip-test-container
+```
