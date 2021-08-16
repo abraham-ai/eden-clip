@@ -10,8 +10,9 @@ COPY . .
 RUN apt-get update
 
 RUN apt-get -y install redis-server
-# RUN sh download_models.sh
+RUN sh download_models.sh
 RUN pip install --upgrade pip
+RUN apt install -y libgl1-mesa-glx
 
 RUN pip install celery
 RUN pip install git+https://github.com/abraham-ai/eden.git --no-deps
@@ -19,7 +20,6 @@ RUN pip install ml4a --no-deps
 RUN pip install git+https://github.com/openai/CLIP.git --no-deps
 RUN pip install -r requirements.txt
 
-EXPOSE 5000
-
+EXPOSE 4545
 # command to run on container start
 CMD [ "python3", "eden_server.py" ]
