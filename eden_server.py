@@ -1,6 +1,8 @@
 import os
 import glob
 import json
+import time
+import random
 import copy
 import torch 
 import PIL
@@ -10,7 +12,9 @@ import clip
 import taming.modules.losses
 from taming.models.vqgan import VQModel
 
+from core.prompt import get_permuted_prompts
 from core.generate import generate
+from core.augmentation import get_augmentations
 
 from eden.block import BaseBlock
 from eden.datatypes import Image
@@ -23,7 +27,10 @@ def get_models(config):
     print(config)
 
     # load CLIP
-    perceptor, preprocess = clip.load('ViT-B/32', jit=False, device = config['__gpu__'])
+    clip_model = config['clip_model']
+    assert clip_model in ['ViT-B/32', 'ViT-B/16'], \
+        'No CLIP model named {}. Available models are: ViT-B/32, ViT-B/16'.format(model_name)
+    perceptor, preprocess = clip.load(clip_model, jit=False, device = config['__gpu__'])
     perceptor = perceptor.eval()
 
     # load VQGAN
@@ -53,32 +60,30 @@ def get_models(config):
 
 my_args = {
     'model_name': 'imagenet',
-    'text_inputs': [{
-        'text': 'hello world',
-        'weight': 10.0
-    }],
+    'clip_model': 'ViT-B/32',
+    'text_input': 'hello world',
     'width': 256,
     'height': 256,
     'num_octaves': 3,
     'octave_scale': 2.0,
-    'num_iterations': [100, 200, 300],
-    'weight_decay': 0.1,
-    'learning_rate': 0.1,
-    'lr_decay_after': 400,
-    'lr_decay_rate': 0.995
+    'num_iterations': [100, 200, 300]
 }    
 @eden_block.run(
     args = my_args,
     progress = True
 )
 def run(config):
-    print('STARTED RUN')
 
-    print("config: \n")
-    print(config)
-    #print(f"gpu for {config['username']}  is ", config['__gpu__'])
+    config['weight_decay'] = 0.05 + 0.1 * random.random()
+    config['learning_rate'] = 0.05 + 0.05 * random.random()
+    config['lr_decay_rate'] = 0.96 + 0.039 * random.random()
+    config['cutn'] = [48, 36, 30]
+    config['batch_size'] = 1
+    config['text_inputs'] = get_permuted_prompts(config['text_input'], 2)
+    print("config: \n", config)
 
     model, perceptor, preprocess = get_models(config = config)
+    augmentations = get_augmentations(config, config['__gpu__'])
 
     #model = taming_transformers.model
     model.post_quant_conv = model.post_quant_conv.to(config['__gpu__'])
@@ -105,10 +110,28 @@ def run(config):
             config_octave['width'] = int(width * (octave_scale ** -(num_octaves-octave-1)))
             config_octave['height'] = int(height * (octave_scale ** -(num_octaves-octave-1)))
             config_octave['num_iterations'] = config['num_iterations'][octave]
+            config_octave['cutn'] = config['cutn'][octave]
             config_octave['lr_decay_after'] = int(config_octave['num_iterations'] * 0.5)
 
             progress_step_size = progress_step_sizes[octave]
-            img = generate(config_octave, perceptor = perceptor, preprocess = preprocess, model = model, device = config['__gpu__'], img = img, progress = progress, progress_step_size = progress_step_size)
+
+            t0 = time.time()
+
+            img = generate(
+                config_octave, 
+                perceptor = perceptor, 
+                preprocess = preprocess, 
+                model = model, 
+                augmentations = augmentations, 
+                device = config['__gpu__'], 
+                img = img,
+                progress = progress, 
+                progress_step_size = progress_step_size
+            )
+
+            t1 = time.time()
+
+            print('octave {}, {}x{}, {} iterations, {} = {} iters/sec'.format(octave, config_octave['width'], config_octave['height'], config_octave['num_iterations'], t1-t0, float(config_octave['num_iterations'])/(t1-t0)))
 
     except Exception as e:
         raise Exception(str(e))
@@ -122,8 +145,8 @@ def run(config):
 
 host_block(
     eden_block,
-    port = 4545,
+    port = 5656,
     max_num_workers = 2,
-    redis_port = 6381,
-    exclude_gpu_ids = [2,3]
+    redis_port = 6379,
+    exclude_gpu_ids = []
 )

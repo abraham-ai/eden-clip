@@ -12,11 +12,11 @@ from .augmentation import get_augmentations
 from .utils import (
     augment, 
     postprocess, 
-    ascend_txt, 
-    make_image
+    make_image,
+    transformer_forward_pass
 )
 
-def generate(config, perceptor, preprocess, model, device, img = None, progress = None, progress_step_size = None):
+def generate(config, perceptor, preprocess, model, augmentations, device, img = None, progress = None, progress_step_size = None):
 
     assert 'text_inputs' in config or 'image_inputs' in config, 'Error: no text or image inputs'
     
@@ -28,7 +28,7 @@ def generate(config, perceptor, preprocess, model, device, img = None, progress 
     config.height = config.height if 'height' in config else 512
     config.size = (config.width, config.height)
     config.batch_size = config.batch_size if 'batch_size' in config else 1
-    config.learning_rate = config.learning_rate if 'learning_rate' in config else 0.3
+    config.learning_rate = config.learning_rate if 'learning_rate' in config else 0.15
     config.lr_decay_after = config.lr_decay_after if 'lr_decay_after' in config else 400
     config.lr_decay_rate = config.lr_decay_rate if 'lr_decay_rate' in config else 0.995
     config.up_noise = config.up_noise if 'up_noise' in config else 0.11
@@ -49,7 +49,6 @@ def generate(config, perceptor, preprocess, model, device, img = None, progress 
         img = np.array(img)
 
     lats = Pars(img, config, model, device = device).to(device)    
-    augmentations = get_augmentations(config, device)
     mapper = [lats.normu]
     optimizer = torch.optim.AdamW([{'params': mapper, 
                                     'lr': config.learning_rate}], 
@@ -69,19 +68,32 @@ def generate(config, perceptor, preprocess, model, device, img = None, progress 
     # optimize
     for itt in tqdm(range(config.num_iterations)):
         
-        loss_ = ascend_txt(
-            lats = lats, 
-            config = config, 
-            transformer_model = model, 
-            up_noise = up_noise, 
-            scaler = scaler, 
-            cutn = cutn, 
-            augs = augmentations,
-            perceptor = perceptor,
-            device = device
-        )
+        # loss_ = ascend_txt(
+        #     lats = lats, 
+        #     config = config, 
+        #     transformer_model = model, 
+        #     up_noise = up_noise, 
+        #     scaler = scaler, 
+        #     cutn = cutn, 
+        #     augs = augmentations,
+        #     perceptor = perceptor,
+        #     device = device
+        # )
 
-        loss = sum(loss_).mean()
+        out = transformer_forward_pass(lats(), model = model, device = device)
+        into = augment((out.clip(-1, 1) + 1) / 2, up_noise, scaler, device, cutn, config, augmentations)   
+        into = normalization(into)
+        iii = perceptor.encode_image(into)
+
+        t_losses = [-t['weight'] * torch.cosine_similarity(t['embedding'], iii, -1)
+                    for t in config.text_inputs]
+        
+        i_losses = [-i['weight'] * torch.cosine_similarity(i['embedding'], iii, -1)
+                    for i in config.image_inputs]
+
+        all_losses = t_losses + i_losses
+
+        loss = sum(all_losses).mean()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

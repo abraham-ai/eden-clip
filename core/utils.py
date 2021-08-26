@@ -29,7 +29,7 @@ def postprocess(img, pre_scaled=True):
 
 
 def augment(into, up_noise, scaler, device, cutn=32, config = None, augs = None):
-    sideX, sideY, channels = config.size[0], config.size[1], 3
+    sideX, sideY = config.size[0], config.size[1]
     min_side = min(sideX, sideY)
     into = torch.nn.functional.pad(
         into, 
@@ -65,22 +65,23 @@ def transformer_forward_pass(x, model, device):
     return i
 
 
-def ascend_txt(lats,config, transformer_model, up_noise , scaler, cutn, augs, perceptor, device):
+# def ascend_txt(lats,config, transformer_model, up_noise , scaler, cutn, augs, perceptor, device):
 
-    out = transformer_forward_pass(lats(), model = transformer_model, device = device)
+#     out = transformer_forward_pass(lats(), model = transformer_model, device = device)
 
-    into = augment((out.clip(-1, 1) + 1) / 2, up_noise , scaler, device, cutn, config, augs)   
-    iii = perceptor.encode_image(into)    
+#     into = augment((out.clip(-1, 1) + 1) / 2, up_noise, scaler, device, cutn, config, augs)   
+#     into = normalization(into)
+#     iii = perceptor.encode_image(into)
 
 
-    t_losses = [-t['weight'] * torch.cosine_similarity(t['embedding'], iii, -1)
-                for t in config.text_inputs]
+#     t_losses = [-t['weight'] * torch.cosine_similarity(t['embedding'], iii, -1)
+#                 for t in config.text_inputs]
     
-    i_losses = [-i['weight'] * torch.cosine_similarity(i['embedding'], iii, -1)
-                for i in config.image_inputs]
+#     i_losses = [-i['weight'] * torch.cosine_similarity(i['embedding'], iii, -1)
+#                 for i in config.image_inputs]
 
-    all_losses = t_losses + i_losses
-    return all_losses
+#     all_losses = t_losses + i_losses
+#     return all_losses
 
 def make_image(lats, model, device):
     with torch.no_grad():
