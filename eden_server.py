@@ -20,7 +20,7 @@ from eden.block import BaseBlock
 from eden.datatypes import Image
 from eden.hosting import host_block
 
-eden_block = BaseBlock(max_gpu_mem = 1)
+eden_block = BaseBlock()
 
 
 def get_models(config):
@@ -29,7 +29,7 @@ def get_models(config):
     # load CLIP
     clip_model = config['clip_model']
     assert clip_model in ['ViT-B/32', 'ViT-B/16'], \
-        'No CLIP model named {}. Available models are: ViT-B/32, ViT-B/16'.format(model_name)
+        'No CLIP model named {}. Available models are: ViT-B/32, ViT-B/16'
     perceptor, preprocess = clip.load(clip_model, jit=False, device = config['__gpu__'])
     perceptor = perceptor.eval()
 
@@ -136,15 +136,12 @@ def run(config):
     except Exception as e:
         raise Exception(str(e))
 
-    config.pop('__progress__')
-
     return {
         'creation': Image(img),
-        'config': config
     }
 
 host_block(
-    eden_block,
+    block = eden_block,
     port = 5656,
     max_num_workers = 2,
     redis_port = 6379,
