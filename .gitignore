@@ -1,3 +1,7 @@
 __pycache__/
 taming/
 env-clip/
+__eden_queue__.json
+*.log
+pretrained/
+results/
