@@ -1,5 +1,7 @@
 # eden-clip
 
+[![Docker CI](https://github.com/abraham-ai/eden-clip/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/abraham-ai/eden-clip/actions/workflows/docker-ci.yml)
+
 This is the first generator running on the [Abraham website](https://www.abraham.ai/create).
 
 The active generator is largely adapted from the LatentVisions notebooks series by [@advadnoun](https://twitter.com/advadnoun/), which shows how to combine [CLIP](https://github.com/openai/CLIP) and [VQGAN](https://github.com/CompVis/taming-transformers) to generate images from text. Additional contributions are sourced from [@RiversHaveWings](https://twitter.com/RiversHaveWings) and [@hotgrits](https://twitter.com/torridgristle). Further improvements have been learned from the long tail of people openly experimenting with CLIP online and providing various recommendations on how to structure prompts, choose hyper-parameters, and other insights.
