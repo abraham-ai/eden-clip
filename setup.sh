@@ -1,0 +1,7 @@
+pip install --upgrade pip
+apt-get -y install redis-server
+pip install git+https://github.com/abraham-ai/eden.git --no-deps
+pip install git+https://github.com/openai/CLIP.git --no-deps
+sh download_models.sh
+pip install -r requirements.txt
+echo "Setup complete!"
