@@ -4,62 +4,29 @@ This is the first generator running on the [Abraham website](https://www.abraham
 
 The active generator is largely adapted from the LatentVisions notebooks series by [@advadnoun](https://twitter.com/advadnoun/), which shows how to combine [CLIP](https://github.com/openai/CLIP) and [VQGAN](https://github.com/CompVis/taming-transformers) to generate images from text. Additional contributions are sourced from [@RiversHaveWings](https://twitter.com/RiversHaveWings) and [@hotgrits](https://twitter.com/torridgristle). Further improvements have been learned from the long tail of people openly experimenting with CLIP online and providing various recommendations on how to structure prompts, choose hyper-parameters, and other insights.
 
-# how to run
+## Hosting from your local machine
 
-hosting openAI CLIP's text to image pipeline with [eden](https://github.com/abraham-ai/eden)
-
-Running locally through eden (no need to clone the repo):
-
-1. (Highly recommended but optional) Make a `venv`
+In order to set it up and download all dependencies, run the following command in a new `venv`
 
 ```
-python3 -m venv env-eden
+sh setup.sh
 ```
 
-2. Activate the `venv`
+An then to run the server: 
 
 ```
-source env-eden/bin/activate
+python3 eden_server.py
 ```
 
-3. Install Redis.
+Hosting the model online would require `ngrok`. Note that we're running on `port = 5656` by default.
 
 ```
-sudo apt-get install redis-server
+ngrok http 5656
 ```
 
-and [configure it properly](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04).
+## Setting up a client and using it
 
-4. Download pretrained models for [taming-transformers](https://github.com/CompVis/taming-transformers).
-
-```
-sh download_models.sh
-```
-
-4. Install eden from the github repo
-
-```
-pip install git+https://github.com/abraham-ai/eden.git --no-deps
-```
-
-5. Run the following snippet in a file:
-
-```python
-from eden.github import GithubSource
-
-g = GithubSource(url = "https://github.com/abraham-ai/eden-clip.git")
-
-if __name__ == '__main__':
-    g.build_and_run()
-```
-
-6. Hosting the model online would require `ngrok`. Note that we're running on [`port = 5454`](https://github.com/abraham-ai/eden-clip/blob/b819465478775118f883eabdc2f46ac665414c4f/server.py#L50) by default.
-
-```
-ngrok http 5454
-```
-
-7. Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere. 
+Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere. 
 
 ```python
 from eden.client import Client
@@ -91,14 +58,13 @@ config = {
 }   
 
 run_response = c.run(config)
+token = run_response['token']
+```
 
-## one eternity later
+Now in order to check the status of your task or obtain the results, you can run: 
 
-resp = c.await_results(token = run_response['token'], show_progress = True)  
-
-if resp['status'] == 'complete':
-    pil_image = resp['output']['creation']
-    pil_image.save('saved_from_server.png')
+```python
+resp = c.fetch(token = token)
 ```
 ## Running with `nvidia-docker`
 
@@ -106,10 +72,10 @@ if resp['status'] == 'complete':
 
 Building from Dockerfile
 ```
-nvidia-docker build . --file Dockerfile --tag eden-clip-test-container
+nvidia-docker build . --file Dockerfile --tag eden-clip
 ```
 
-Running on `localhost:4545`
+Running on `localhost:5656`
 ```
-nvidia-docker run --gpus all -p 4545:4545 --network="host"  eden-clip-test-container
+nvidia-docker run --gpus all -p 5656:5656 --network="host" eden-clip
 ```
