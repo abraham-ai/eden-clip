@@ -92,7 +92,7 @@ def run(config):
     try:
         width, height = config.data['width'], config.data['height']
         octave_scale, num_octaves = config.data['octave_scale'], config.data['num_octaves']
-        progress = config.data['__progress__']
+        progress = config.progress
 
         '''
         This block uses a heuristic to estimate the progress_step_size at each octave
@@ -104,12 +104,14 @@ def run(config):
 
         img = None
 
+        print(config['num_iterations'])
+
         for octave in range(config.data['num_octaves']):
-            config_octave = config.copy()
+            config_octave = config.data.copy()
 
             config_octave['width'] = int(width * (octave_scale ** -(num_octaves-octave-1)))
             config_octave['height'] = int(height * (octave_scale ** -(num_octaves-octave-1)))
-            config_octave['num_iterations'] = config.data['num_iterations'][octave]
+            config_octave['num_iterations'] = config['num_iterations'][octave]
             config_octave['cutn'] = config.data['cutn'][octave]
             config_octave['lr_decay_after'] = int(config_octave['num_iterations'] * 0.5)
 
@@ -145,5 +147,6 @@ host_block(
     port = 5656,
     max_num_workers = 2,
     redis_port = 6379,
-    exclude_gpu_ids = []
+    exclude_gpu_ids = [],
+    logfile = None  ## let us dump logs to stdout
 )

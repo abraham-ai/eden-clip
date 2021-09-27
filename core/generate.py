@@ -16,7 +16,7 @@ from .utils import (
     transformer_forward_pass
 )
 
-def generate(config, perceptor, preprocess, model, augmentations, device, img = None, progress = None, progress_step_size = None):
+def generate(config: dict, perceptor, preprocess, model, augmentations, device, img = None, progress = None, progress_step_size = None):
 
     assert 'text_inputs' in config or 'image_inputs' in config, 'Error: no text or image inputs'
     
@@ -67,18 +67,6 @@ def generate(config, perceptor, preprocess, model, augmentations, device, img = 
         
     # optimize
     for itt in tqdm(range(config.num_iterations)):
-        
-        # loss_ = ascend_txt(
-        #     lats = lats, 
-        #     config = config, 
-        #     transformer_model = model, 
-        #     up_noise = up_noise, 
-        #     scaler = scaler, 
-        #     cutn = cutn, 
-        #     augs = augmentations,
-        #     perceptor = perceptor,
-        #     device = device
-        # )
 
         out = transformer_forward_pass(lats(), model = model, device = device)
         into = augment((out.clip(-1, 1) + 1) / 2, up_noise, scaler, device, cutn, config, augmentations)   
