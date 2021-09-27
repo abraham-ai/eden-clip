@@ -27,14 +27,14 @@ def get_models(config):
     print(config)
 
     # load CLIP
-    clip_model = config['clip_model']
+    clip_model = config.data['clip_model']
     assert clip_model in ['ViT-B/32', 'ViT-B/16'], \
         'No CLIP model named {}. Available models are: ViT-B/32, ViT-B/16'
-    perceptor, preprocess = clip.load(clip_model, jit=False, device = config['__gpu__'])
+    perceptor, preprocess = clip.load(clip_model, jit=False, device = config.gpu)
     perceptor = perceptor.eval()
 
     # load VQGAN
-    model_name = config['model_name']
+    model_name = config.data['model_name']
     assert model_name in ['imagenet', 'wikiart'], \
         'No model named {}. Available models are: imagenet, wikiart'.format(model_name)
     if model_name == 'imagenet':
@@ -49,11 +49,11 @@ def get_models(config):
     missing, unexpected = model.load_state_dict(sd, strict=False)
 
     model = model.eval()
-    model = model.to(config['__gpu__'])
+    model = model.to(config.gpu)
     #torch.set_grad_enabled(False)
 
-    print("Setup CLIP on {}".format(config['__gpu__']))
-    print("Setup VQGAN on {}".format(config['__gpu__']))
+    print("Setup CLIP on {}".format(config.gpu))
+    print("Setup VQGAN on {}".format(config.gpu))
 
     return model, perceptor, preprocess
 
@@ -74,43 +74,43 @@ my_args = {
 )
 def run(config):
 
-    config['weight_decay'] = 0.05 + 0.1 * random.random()
-    config['learning_rate'] = 0.05 + 0.05 * random.random()
-    config['lr_decay_rate'] = 0.96 + 0.039 * random.random()
-    config['cutn'] = [48, 36, 30]
-    config['batch_size'] = 1
-    config['text_inputs'] = get_permuted_prompts(config['text_input'], 2)
+    config.data['weight_decay'] = 0.05 + 0.1 * random.random()
+    config.data['learning_rate'] = 0.05 + 0.05 * random.random()
+    config.data['lr_decay_rate'] = 0.96 + 0.039 * random.random()
+    config.data['cutn'] = [48, 36, 30]
+    config.data['batch_size'] = 1
+    config.data['text_inputs'] = get_permuted_prompts(config.data['text_input'], 2)
     print("config: \n", config)
 
     model, perceptor, preprocess = get_models(config = config)
-    augmentations = get_augmentations(config, config['__gpu__'])
+    augmentations = get_augmentations(config, config.gpu)
 
     #model = taming_transformers.model
-    model.post_quant_conv = model.post_quant_conv.to(config['__gpu__'])
-    model.decoder = model.decoder.to(config['__gpu__'])
+    model.post_quant_conv = model.post_quant_conv.to(config.gpu)
+    model.decoder = model.decoder.to(config.gpu)
 
     try:
-        width, height = config['width'], config['height']
-        octave_scale, num_octaves = config['octave_scale'], config['num_octaves']
-        progress = config['__progress__']
+        width, height = config.data['width'], config.data['height']
+        octave_scale, num_octaves = config.data['octave_scale'], config.data['num_octaves']
+        progress = config.data['__progress__']
 
         '''
         This block uses a heuristic to estimate the progress_step_size at each octave
         '''
-        #total_progress = [n*(config['octave_scale']**(2*i)) for i, n in enumerate(config['num_iterations'])]
+        #total_progress = [n*(config.data['octave_scale']**(2*i)) for i, n in enumerate(config.data['num_iterations'])]
         iter_per_sec = [4.962, 3.826, 1.964]  # determined empirically for sizes 128, 256, 512
-        total_progress = [n/i for i, n in zip(iter_per_sec, config['num_iterations'])]
-        progress_step_sizes = [t/(n * sum(total_progress)) for n, t in zip(config['num_iterations'], total_progress)]
+        total_progress = [n/i for i, n in zip(iter_per_sec, config.data['num_iterations'])]
+        progress_step_sizes = [t/(n * sum(total_progress)) for n, t in zip(config.data['num_iterations'], total_progress)]
 
         img = None
 
-        for octave in range(config['num_octaves']):
+        for octave in range(config.data['num_octaves']):
             config_octave = config.copy()
 
             config_octave['width'] = int(width * (octave_scale ** -(num_octaves-octave-1)))
             config_octave['height'] = int(height * (octave_scale ** -(num_octaves-octave-1)))
-            config_octave['num_iterations'] = config['num_iterations'][octave]
-            config_octave['cutn'] = config['cutn'][octave]
+            config_octave['num_iterations'] = config.data['num_iterations'][octave]
+            config_octave['cutn'] = config.data['cutn'][octave]
             config_octave['lr_decay_after'] = int(config_octave['num_iterations'] * 0.5)
 
             progress_step_size = progress_step_sizes[octave]
@@ -123,7 +123,7 @@ def run(config):
                 preprocess = preprocess, 
                 model = model, 
                 augmentations = augmentations, 
-                device = config['__gpu__'], 
+                device = config.gpu, 
                 img = img,
                 progress = progress, 
                 progress_step_size = progress_step_size
