@@ -9,6 +9,8 @@ RUN apt-get -y update \
 RUN apt-get -y update
 RUN apt install -y libgl1-mesa-glx
 RUN apt install -y git
+RUN apt install -y wget
+RUN apt install -y curl
 RUN apt-get -y install python3
 RUN apt-get -y install python3-pip
 
