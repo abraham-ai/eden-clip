@@ -8,6 +8,7 @@ RUN apt-get -y update \
     && add-apt-repository universe
 RUN apt-get -y update
 RUN apt install -y libgl1-mesa-glx
+RUN apt install -y git
 RUN apt-get -y install python3
 RUN apt-get -y install python3-pip
 
