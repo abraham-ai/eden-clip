@@ -128,6 +128,7 @@ six==1.16.0
 sklearn==0.0
 smmap==4.0.0
 starlette==0.14.2
+starlette-exporter==0.10.0
 streamlit==0.81.1
 taming-transformers==0.0.1
 tensorboard==2.4.1
