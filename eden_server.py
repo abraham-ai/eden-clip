@@ -145,8 +145,9 @@ def run(config):
 host_block(
     block = eden_block,
     port = 5656,
-    max_num_workers = 2,
+    max_num_workers = 1,
     redis_port = 6379,
+    redis_host = 'eden-redis',
     exclude_gpu_ids = [],
     logfile = None  ## let us dump logs to stdout
 )
