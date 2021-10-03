@@ -20,6 +20,21 @@ from eden.block import BaseBlock
 from eden.datatypes import Image
 from eden.hosting import host_block
 
+'''
+CLI args for convenience
+'''
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-n','--num-workers', help='maximum number of workers to be run in parallel', required=False, default= 1, type= int)
+parser.add_argument('-l','--logfile', help='filename of log file', required=False, type= str, default= None)
+parser.add_argument('-p','--port', help='localhost port', required=False, type= int, default= 5656)
+parser.add_argument('-rh','--redis-host', help='redis host', required=False, type= str, default= 'localhost')
+parser.add_argument('-rp','--redis-port', help='redis port', required=False, type= int, default= 6379)
+
+
+args = parser.parse_args()
+
 eden_block = BaseBlock()
 
 
@@ -144,10 +159,9 @@ def run(config):
 
 host_block(
     block = eden_block,
-    port = 5656,
-    max_num_workers = 1,
-    redis_port = 6379,
-    redis_host = 'eden-redis',
-    exclude_gpu_ids = [],
-    logfile = None  ## let us dump logs to stdout
+    port = args.port,
+    max_num_workers = args.num_workers,
+    redis_port = args.redis_port,
+    redis_host = args.redis_host,
+    logfile = args.logfile  ## let us dump logs to stdout
 )
