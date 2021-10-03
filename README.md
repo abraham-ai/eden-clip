@@ -17,14 +17,12 @@ sh setup.sh
 An then to run the server: 
 
 ```
-python3 eden_server.py
+python3 eden_server.py -n 1 -p 5656 -rh localhost -rp 6379
 ```
-
-Hosting the model online would require `ngrok`. Note that we're running on `port = 5656` by default.
-
-```
-ngrok http 5656
-```
+- `-n`: number of workers to be run in parallel (defaults to `1`)
+- `-p`: port to be exposed (defaults to `5656`)
+- `-rh`: redis host where queue metadata/results would be stored (defaults to `localhost`)
+- `-rp`: redis port (defaults to `6379`)
 
 ## Setting up a client and using it
 
@@ -79,5 +77,5 @@ nvidia-docker build . --file Dockerfile --tag eden-clip
 
 Running on `localhost:5656`
 ```
-nvidia-docker run --gpus all -p 5656:5656 --network="host" eden-clip
+nvidia-docker run --gpus all -p 5656:5656 --network="host" eden-clip -n 1 -p 5656 -rh localhost -rp 6379
 ```
