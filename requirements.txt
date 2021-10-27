@@ -56,7 +56,6 @@ rsa==4.7.2
 six==1.16.0
 starlette==0.14.2
 starlette-exporter==0.10.0
-taming-transformers==0.0.1
 tensorboard==2.7.0
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.0
