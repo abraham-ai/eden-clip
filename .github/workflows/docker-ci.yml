@@ -68,7 +68,7 @@ jobs:
         uses: jacobtomlinson/gha-find-replace@v2
         with:
           find: "^(.*)image: abrahamofeden/eden-clip:.*$"
-          replace: "$1image: ${{ needs.build.outputs.imagetag }}"
+          replace: "${1}image: ${{ needs.build.outputs.imagetag }}"
           include: "releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml"
           regex: true
 
