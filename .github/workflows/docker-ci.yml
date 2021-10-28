@@ -67,8 +67,8 @@ jobs:
       - name: Bump up eden-staging image
         uses: jacobtomlinson/gha-find-replace@v2
         with:
-          find: "abrahamofeden/eden-clip.*"
-          replace: "abrahamofeden/eden-clip:${{ needs.build.outputs.tag }}"
+          find: "^.*(image: abrahamofeden/eden-clip:.*$)"
+          replace: "image: abrahamofeden/eden-clip:${{ needs.build.outputs.tag }}"
           include: "releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml"
           regex: true
 
