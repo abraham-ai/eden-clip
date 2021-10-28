@@ -38,7 +38,7 @@ jobs:
     #   with:
     #     context: .
     #     push: ${{ github.event_name != 'pull_request' }}
-    #     tags: ${{ steps.meta.outputs.tags }}, ${{ github.sha }}, latest
+    #     tags: ${{ steps.meta.outputs.tags }}
     #     labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
@@ -58,9 +58,10 @@ jobs:
       - name: Bump up eden-staging image
         uses: jacobtomlinson/gha-find-replace@v2
         with:
-          find: "abrahamofeden/eden-clip:v0.0.20"
-          replace: "$DOCKER_USERNAME/eden-clip:latest"
+          find: "abrahamofeden/eden-clip.*"
+          replace: "abrahamofeden/eden-clip:${{ needs.build.steps.meta.outputs.tags }}"
           include: "releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml"
+          regex: true
 
       # - name: Setup Kustomize
       #   uses: imranismail/setup-kustomize@v1
