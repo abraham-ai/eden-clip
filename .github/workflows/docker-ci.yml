@@ -73,7 +73,7 @@ jobs:
       
       - name: Bump up eden-staging image
         run: |
-          sed -i -E "s/abrahamofeden\/eden-clip:.*/${{ needs.build.outputs.imagetag }}/" releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml
+          sed -i -E "s@abrahamofeden/eden-clip:.*@${{ needs.build.outputs.imagetag }}@" releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml
 
       # - name: Setup Kustomize
       #   uses: imranismail/setup-kustomize@v1
