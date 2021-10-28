@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
-      tag: ${{ steps.first.outputs.tag }}
+      imagetag: ${{ steps.first.outputs.tag }}
 
     steps:
     - name: Check out the repo
@@ -48,7 +48,7 @@ jobs:
       id: first
       run: |
         IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | sed 1q)
-        echo "::set-output name=tag::$IMAGE"
+        echo "::set-output name=imagetag::$IMAGE"
 
   deploy:
     name: Deploy
@@ -68,7 +68,7 @@ jobs:
         uses: jacobtomlinson/gha-find-replace@v2
         with:
           find: "^.*(image: abrahamofeden/eden-clip:.*$)"
-          replace: "image: abrahamofeden/eden-clip:${{ needs.build.outputs.tag }}"
+          replace: "image: ${{ needs.build.outputs.imagetag }}"
           include: "releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml"
           regex: true
 
