@@ -79,11 +79,11 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am "Bump docker tag"
+          git commit -am "Bump eden-staging"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           repository: one1zero1one/eden-azure
-          branch: ${{ github.ref }}
+          branch: refs/heads/main
           github_token: ${{ secrets.ONE1ZERO1ONE_PAT }}   
