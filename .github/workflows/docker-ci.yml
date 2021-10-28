@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
-      imagetag: ${{ steps.first.outputs.tag }}
+      imagetag: ${{ steps.first.outputs.imagetag }}
 
     steps:
     - name: Check out the repo
