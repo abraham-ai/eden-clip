@@ -67,10 +67,9 @@ jobs:
       - name: Bump up eden-staging image
         uses: jacobtomlinson/gha-find-replace@v2
         with:
-          find: "abrahamofeden/eden-clip:"
+          find: "abrahamofeden/eden-clip:.*$"
           replace: "${{ needs.build.outputs.imagetag }}"
           include: "releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml"
-          regex: true
 
       # - name: Setup Kustomize
       #   uses: imranismail/setup-kustomize@v1
