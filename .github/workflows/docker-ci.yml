@@ -47,8 +47,8 @@ jobs:
     needs: build
 
     steps:
-      - name: Check out releases repoe
-        uses: actions/checkout@master
+      - name: Check out releases repo
+        uses: actions/checkout@v2
         with:
           repository: one1zero1one/eden-azure
           token: ${{ secrets.ONE1ZERO1ONE_PAT }}
