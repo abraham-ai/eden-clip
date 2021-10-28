@@ -85,5 +85,5 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           repository: one1zero1one/eden-azure
-          ref: refs/heads/main
-          token: ${{ secrets.ONE1ZERO1ONE_PAT }}   
+          branch: ${{ github.ref }}
+          github_token: ${{ secrets.ONE1ZERO1ONE_PAT }}   
