@@ -36,13 +36,13 @@ jobs:
         username: abrahamofeden
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-    # - name: Build and Push
-    #   uses: docker/build-push-action@v2
-    #   with:
-    #     context: .
-    #     push: ${{ github.event_name != 'pull_request' }}
-    #     tags: ${{ steps.meta.outputs.tags }}
-    #     labels: ${{ steps.meta.outputs.labels }}
+    - name: Build and Push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
 
     - name: Pick up one tag
       id: first
@@ -62,31 +62,10 @@ jobs:
           repository: one1zero1one/eden-azure
           ref: refs/heads/main
           token: ${{ secrets.ONE1ZERO1ONE_PAT }}
-
-      # Could not get this to work
-      # - name: Bump up eden-staging image
-      #   uses: jacobtomlinson/gha-find-replace@v2
-      #   with:
-      #     find: "abrahamofeden/eden-clip:.*$"
-      #     replace: "${{ needs.build.outputs.imagetag }}"
-      #     include: "releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml"
       
       - name: Bump up eden-staging image
         run: |
           sed -i -E "s@abrahamofeden/eden-clip:.*@${{ needs.build.outputs.imagetag }}@" releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml
-
-      # - name: Setup Kustomize
-      #   uses: imranismail/setup-kustomize@v1
-      #   with:
-      #     kustomize-version: "3.6.1"
-
-      # - name: Update Kubernetes resources
-      #   env:
-      #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      #   run: |
-      #     cd kustomize/base
-      #     kustomize edit set image eden-clip=$DOCKER_USERNAME/eden-clip:$GITHUB_SHA
-      #     cat kustomization.yaml
           
       - name: Commit files
         run: |
