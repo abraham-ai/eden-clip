@@ -13,28 +13,66 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-20.04
+
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
 
-    - name: Docker meta 
-      id: meta
-      uses: docker/metadata-action@v3
-      with:
-        images: abrahamofeden/eden-clip
+    # - name: Docker meta 
+    #   id: meta
+    #   uses: docker/metadata-action@v3
+    #   with:
+    #     images: abrahamofeden/eden-clip
 
-    - name: Log in to Docker Hub
-      if: github.event_name != 'pull_request'       
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    # - name: Log in to Docker Hub
+    #   if: github.event_name != 'pull_request'       
+    #   uses: docker/login-action@v1
+    #   with:
+    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #     password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-    - name: Build and Push
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+    # - name: Build and Push
+    #   uses: docker/build-push-action@v2
+    #   with:
+    #     context: .
+    #     push: ${{ github.event_name != 'pull_request' }}
+    #     tags: ${{ steps.meta.outputs.tags }}, ${{ github.sha }}, latest
+    #     labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-20.04
+    needs: build
+
+    steps:
+      - name: Check out releases repoe
+        uses: actions/checkout@master
+        with:
+          repository: one1zero1one/eden-azure
+          token: ${{ secrets.ONE1ZERO1ONE_PAT }}
+
+      # - name: Setup Kustomize
+      #   uses: imranismail/setup-kustomize@v1
+      #   with:
+      #     kustomize-version: "3.6.1"
+
+      # - name: Update Kubernetes resources
+      #   env:
+      #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      #   run: |
+      #     cd kustomize/base
+      #     kustomize edit set image eden-clip=$DOCKER_USERNAME/eden-clip:$GITHUB_SHA
+      #     cat kustomization.yaml
+          
+      # - name: Commit files
+      #   run: |
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git commit -am "Bump docker tag"
+
+      # - name: Push changes
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}        
