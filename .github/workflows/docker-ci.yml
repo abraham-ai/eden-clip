@@ -16,7 +16,8 @@ jobs:
     name: Build
     runs-on: ubuntu-20.04
     outputs:
-      tag: ${{ steps.meta.outputs.tags }}
+      tags: ${{ steps.meta.outputs.tags }}
+      tag: ${{ steps.first.outputs.tag }}
 
     steps:
     - name: Check out the repo
@@ -42,6 +43,12 @@ jobs:
     #     push: ${{ github.event_name != 'pull_request' }}
     #     tags: ${{ steps.meta.outputs.tags }}
     #     labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Pick up one tag
+      id: first
+      run: |
+        IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | sed 1q)
+        echo "::set-output name=tag::$IMAGE"
 
   deploy:
     name: Deploy
