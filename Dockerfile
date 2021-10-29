@@ -21,6 +21,8 @@ COPY . .
 # install the others
 RUN sh setup.sh
 
-EXPOSE 5656
+# the line below is commented out because: https://stackoverflow.com/questions/49323225/expose-all-ports-for-a-docker-image/49323975
+# EXPOSE 5656 
+
 # command to run on container start
-CMD [ "python3", "eden_server.py" ]
+ENTRYPOINT [ "python3", "eden_server.py" ]
