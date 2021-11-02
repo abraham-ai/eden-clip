@@ -163,5 +163,6 @@ host_block(
     max_num_workers = args.num_workers,
     redis_port = args.redis_port,
     redis_host = args.redis_host,
-    logfile = args.logfile  ## let us dump logs to stdout
+    logfile = args.logfile,  ## let us dump logs to stdout
+    loglevel = 'debug' 
 )
