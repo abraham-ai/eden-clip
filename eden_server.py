@@ -164,9 +164,5 @@ host_block(
     redis_port = args.redis_port,
     redis_host = args.redis_host,
     logfile = args.logfile,  ## let us dump logs to stdout
-<<<<<<< HEAD
-    loglevel = 'debug'
-=======
     loglevel = 'debug' 
->>>>>>> f6b2706d55cbbd26b4e6afef52260ef6132d9ebd
 )
