@@ -1,21 +1,24 @@
 from eden.client import Client
-from eden.datatypes import Image
 
-c = Client(url = 'your_url_to_server', username= 'eden_clip_client', timeout= 990000)
-
-setup_response = c.setup()
+c = Client(url = 'url_to_host', username= 'eden_clip_client')
 
 config = {
-    'prompt': 'abraham',
-    'width': 256,
-    'height': 256,
-    'iters': 500,
-    'weight_decay': 0.1,
-    'learning_rate': 0.1,
-    'lr_decay_after': 400,
-    'lr_decay_rate': 0.995
-}
-run_response = c.run(config)
+  "model_name": "imagenet",
+  "clip_model": "ViT-B/32",
+  "text_input": "Garden of Eden; Beautiful",
+  "width": 1024,
+  "height": 256,
+  "num_octaves": 3,
+  "octave_scale": 2,
+  "num_iterations": [
+    200,
+    200,
+    100
+  ]
+}  
 
-pil_image = run_response['output']['creation']
-pil_image.save('saved_from_server.png')
+run_response = c.run(config)
+token = run_response['token']
+
+output = c.await_results(token = token, fetch_interval = 1, show_progress = False)
+output['output']['creation'].save(f'{token}.png')
