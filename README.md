@@ -30,32 +30,23 @@ Copy paste the ngrok URL you got into the snippet below. Then you can run it pre
 
 ```python
 from eden.client import Client
-from eden.datatypes import Image
 
-c = Client(url = 'YOUR_NGROK_OR_LOCALHOST_URL', username= 'eden_clip_client', timeout= 990000)
+c = Client(url = 'url_to_host', username= 'eden_clip_client')
 
 config = {
-    'model_name': 'imagenet',
-    'text_inputs': [
-            {
-        'text': 'blue',
-        'weight': 10.0,
-        },
-            {
-        'text': 'mushroom',
-        'weight': 20.0,
-        },
-    ],
-    'width': 256,
-    'height': 256,
-    'num_octaves': 3,
-    'octave_scale': 2.0,
-    'num_iterations': [20, 50, 100],
-    'weight_decay': 0.1,
-    'learning_rate': 0.1,
-    'lr_decay_after': 400,
-    'lr_decay_rate': 0.995
-}   
+  "model_name": "imagenet",
+  "clip_model": "ViT-B/32",
+  "text_input": "Garden of Eden; Beautiful",
+  "width": 1024,
+  "height": 256,
+  "num_octaves": 3,
+  "octave_scale": 2,
+  "num_iterations": [
+    200,
+    200,
+    100
+  ]
+}  
 
 run_response = c.run(config)
 token = run_response['token']
@@ -65,6 +56,18 @@ Now in order to check the status of your task or obtain the results, you can run
 
 ```python
 resp = c.fetch(token = token)
+```
+
+Or if you want to wait for the task to complete within the script:
+
+```python
+output = c.await_results(token = token, fetch_interval = 1, show_progress = False)
+```
+
+And then save your creation:
+
+```python
+output['output']['creation'].save('eden_clip_creation.png')
 ```
 ## Running with `nvidia-docker`
 
