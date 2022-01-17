@@ -8,17 +8,20 @@ The active generator is largely adapted from the LatentVisions notebooks series 
 
 ## Hosting from your local machine
 
+Install [redis](https://redis.io/topics/quickstart) on your local machine, or run it as a container with `docker run -it -p 6379:6379 redis`
+
 In order to set it up and download all dependencies, run the following command in a new `venv`
 
 ```
 sh setup.sh
 ```
 
-An then to run the server: 
+An then to run the server:
 
 ```
 python3 eden_server.py -n 1 -p 5656 -rh localhost -rp 6379
 ```
+
 - `-n`: number of workers to be run in parallel (defaults to `1`)
 - `-p`: port to be exposed (defaults to `5656`)
 - `-rh`: redis host where queue metadata/results would be stored (defaults to `localhost`)
@@ -26,7 +29,7 @@ python3 eden_server.py -n 1 -p 5656 -rh localhost -rp 6379
 
 ## Setting up a client and using it
 
-Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere. 
+Copy paste the ngrok URL you got into the snippet below. Then you can run it pretty much from anywhere.
 
 ```python
 from eden.client import Client
@@ -46,13 +49,13 @@ config = {
     200,
     100
   ]
-}  
+}
 
 run_response = c.run(config)
 token = run_response['token']
 ```
 
-Now in order to check the status of your task or obtain the results, you can run: 
+Now in order to check the status of your task or obtain the results, you can run:
 
 ```python
 resp = c.fetch(token = token)
@@ -69,16 +72,19 @@ And then save your creation:
 ```python
 output['output']['creation'].save('eden_clip_creation.png')
 ```
+
 ## Running with `nvidia-docker`
 
 > In case you don't have `nvidia-docker`, it can be installed [from here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
 
 Building from Dockerfile
+
 ```
 nvidia-docker build . --file Dockerfile --tag eden-clip
 ```
 
 Running on `localhost:5656`
+
 ```
 nvidia-docker run --gpus all -p 5656:5656 --network="host" eden-clip -n 1 -p 5656 -rh localhost -rp 6379
 ```
