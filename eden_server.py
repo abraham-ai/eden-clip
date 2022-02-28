@@ -16,7 +16,7 @@ from core.prompt import get_permuted_prompts
 from core.generate import generate
 from core.augmentation import get_augmentations
 
-from eden.block import BaseBlock
+from eden.block import Block
 from eden.datatypes import Image
 from eden.hosting import host_block
 
@@ -35,7 +35,7 @@ parser.add_argument('-rp','--redis-port', help='redis port', required=False, typ
 
 args = parser.parse_args()
 
-eden_block = BaseBlock()
+eden_block = Block()
 
 
 def get_models(config):
