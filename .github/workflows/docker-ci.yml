@@ -24,11 +24,14 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v2
 
-    - name: Docker meta 
-      id: meta
-      uses: docker/metadata-action@v3
-      with:
-        images: abrahamofeden/eden-clip
+    - name: Prepare
+      id: prep
+      run: |
+        TAG=$(echo $GITHUB_SHA | head -c7)
+        IMAGE="registry.abraham.fun/abraham-ai/eden-clip"
+        echo ::set-output name=tagged_image::${IMAGE}:${TAG}
+        echo ::set-output name=tag::${TAG}
+        echo ::set-output name=image::${IMAGE}
 
     - name: Log in to Docker Hub
       if: github.event_name != 'pull_request'       
@@ -43,8 +46,7 @@ jobs:
       with:
         context: .
         push: true #${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.prep.outputs.tagged_image }}
 
     - name: Pick up one tag
       id: first
