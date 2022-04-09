@@ -28,7 +28,7 @@ jobs:
       id: prep
       run: |
         TAG=$(echo $GITHUB_SHA | head -c7)
-        IMAGE="registry.abraham.fun/abraham-ai/eden-clip"
+        IMAGE="registry.aws.abraham.fun/abraham-ai/eden-clip"
         echo ::set-output name=tagged_image::${IMAGE}:${TAG}
         echo ::set-output name=tag::${TAG}
         echo ::set-output name=image::${IMAGE}
