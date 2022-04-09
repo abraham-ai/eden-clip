@@ -3,8 +3,9 @@ name: Docker CI
 # for now build only new tags
 on:
   push:
-    # branches:
+    branches:
     #   - 'master'
+      - 'feature/migrate-to-aws'    
     tags:
       - 'v*'
   # pull_request:
@@ -33,14 +34,15 @@ jobs:
       if: github.event_name != 'pull_request'       
       uses: docker/login-action@v1
       with:
-        username: abrahamofeden
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          registry: registry.aws.abraham.fun
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build and Push
       uses: docker/build-push-action@v2
       with:
         context: .
-        push: ${{ github.event_name != 'pull_request' }}
+        push: true #${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
 
@@ -50,32 +52,32 @@ jobs:
         IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | sed 1q)
         echo "::set-output name=imagetag::$IMAGE"
 
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-20.04
-    needs: build
+  # deploy:
+  #   name: Deploy
+  #   runs-on: ubuntu-20.04
+  #   needs: build
 
-    steps:
-      - name: Check out releases repo
-        uses: actions/checkout@v2
-        with:
-          repository: one1zero1one/eden-azure
-          ref: refs/heads/main
-          token: ${{ secrets.ONE1ZERO1ONE_PAT }}
+  #   steps:
+  #     - name: Check out releases repo
+  #       uses: actions/checkout@v2
+  #       with:
+  #         repository: one1zero1one/eden-azure
+  #         ref: refs/heads/main
+  #         token: ${{ secrets.ONE1ZERO1ONE_PAT }}
       
-      - name: Bump up eden-staging image
-        run: |
-          sed -i -E "s@abrahamofeden/eden-clip:.*@${{ needs.build.outputs.imagetag }}@" releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml
+  #     - name: Bump up eden-staging image
+  #       run: |
+  #         sed -i -E "s@abrahamofeden/eden-clip:.*@${{ needs.build.outputs.imagetag }}@" releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml
           
-      - name: Commit files
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -am "Bump eden-staging"
+  #     - name: Commit files
+  #       run: |
+  #         git config --local user.email "action@github.com"
+  #         git config --local user.name "GitHub Action"
+  #         git commit -am "Bump eden-staging"
 
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          repository: one1zero1one/eden-azure
-          branch: refs/heads/main
-          github_token: ${{ secrets.ONE1ZERO1ONE_PAT }}   
+  #     - name: Push changes
+  #       uses: ad-m/github-push-action@master
+  #       with:
+  #         repository: one1zero1one/eden-azure
+  #         branch: refs/heads/main
+  #         github_token: ${{ secrets.ONE1ZERO1ONE_PAT }}   
