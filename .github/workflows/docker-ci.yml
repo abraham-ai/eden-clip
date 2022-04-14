@@ -84,7 +84,7 @@ jobs:
       
       - name: Bump up eden-staging image
         run: |
-          sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.imagetag }}@" releases/apps/eden/eden-clip-staging/deployment-eden-clip.yaml
+          sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.prep.outputs.tagged_image }}@" releases/apps/eden/eden-clip-stg/deployment-eden-clip.yaml
           
       - name: Commit files
         run: |
