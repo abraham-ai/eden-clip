@@ -1,4 +1,4 @@
-name: Build And Publish
+name: Build And Deploy
 
 on:
   push:
@@ -38,11 +38,9 @@ jobs:
         IMAGE="registry.aws.abraham.fun/abraham-ai/eden-clip"
         echo ::set-output name=tagged_image::${IMAGE}:${TAG}
         echo ::set-output name=tag::${TAG}
-        echo ::set-output name=image::${IMAGE}
-        buildevents cmd $TRACE_ID $STEP_ID set-output -- sleep 1           
+        echo ::set-output name=image::${IMAGE}         
     - run: |
-        buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep'
-
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep-variables'
 
     - run: |
         echo "STEP_ID=1" >> $GITHUB_ENV
@@ -87,7 +85,6 @@ jobs:
     needs: build
 
     steps:
-
       - name: Buildevents
         uses: kvrhdn/gha-buildevents@v1
         with:
@@ -100,7 +97,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: abraham-ai/releases
-          ref: feature/eden
+          ref: feature/eden ######### CHANGEME
           token: ${{ secrets.ONE1ZERO1ONE_PAT }}
 
       - run: |
@@ -108,21 +105,20 @@ jobs:
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
       - name: Bump up eden-staging image
         run: |
-          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.tagged_image }}@" releases/apps/eden/eden-clip-stg/deployment-eden-clip.yaml
+          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.tagged_image }}@" apps/eden/eden-clip-stg/deployment-eden-clip.yaml
       - run: |
           buildevents step $TRACE_ID $STEP_ID $STEP_START 'bump-up-eden-staging'       
 
       - run: |
           echo "STEP_ID=1" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
-
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "Abraham Releases"
           git commit -am "Bump eden-staging"
       - run: |
-          buildevents step $TRACE_ID $STEP_ID $STEP_START 'commit'               
+          buildevents step $TRACE_ID $STEP_ID $STEP_START 'commit-to-releases'               
 
       - run: |
           echo "STEP_ID=2" >> $GITHUB_ENV
@@ -131,10 +127,10 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           repository: abraham-ai/releases
-          branch: refs/heads/main
+          branch: feature/eden ########## CHANGEME
           github_token: ${{ secrets.ONE1ZERO1ONE_PAT }} 
       - run: |
-          buildevents step $TRACE_ID $STEP_ID $STEP_START 'push'
+          buildevents step $TRACE_ID $STEP_ID $STEP_START 'push-releases'
 
       # here I somehow should wait until argo says ok OR 1 minute passed OR
       # i could send the trace ID and argo could continue the trace ?          
