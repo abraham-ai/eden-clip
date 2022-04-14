@@ -17,27 +17,19 @@ jobs:
     name: Build
     runs-on: ubuntu-20.04
     outputs:
-      tags: ${{ steps.meta.outputs.tags }}
-      imagetag: ${{ steps.first.outputs.imagetag }}
+      tagged_image: ${{ steps.prep.outputs.tagged_image }}
 
     steps:
-
-    - name: Check out the repo
-      uses: actions/checkout@v2
-    
     - name: Observability
       uses: kvrhdn/gha-buildevents@v1
       with:
         apikey: ${{ secrets.BUILDEVENTS_APIKEY }}
         dataset: continuous-deployment
-
-        # Required: the job status, this will be used in the post section and sent
-        # as status of the trace. Must always be ${{ job.status }}.
         job-status: ${{ job.status }}
-
-        # Optional: this should only be used in combination with matrix builds. Set
-        # this to a value uniquely describing each matrix configuration.
         matrix-key: ${{ matrix.value }}
+
+    - name: Check out the repo
+      uses: actions/checkout@v2
 
     - name: Prepare
       id: prep
@@ -75,6 +67,15 @@ jobs:
     needs: build
 
     steps:
+
+      - name: Observability
+        uses: kvrhdn/gha-buildevents@v1
+        with:
+          apikey: ${{ secrets.BUILDEVENTS_APIKEY }}
+          dataset: continuous-deployment
+          job-status: ${{ job.status }}
+          matrix-key: ${{ matrix.value }}
+
       - name: Check out releases repo
         uses: actions/checkout@v2
         with:
@@ -84,7 +85,7 @@ jobs:
       
       - name: Bump up eden-staging image
         run: |
-          sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.prep.outputs.tagged_image }}@" releases/apps/eden/eden-clip-stg/deployment-eden-clip.yaml
+          sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.tagged_image }}@" releases/apps/eden/eden-clip-stg/deployment-eden-clip.yaml
           
       - name: Commit files
         run: |
