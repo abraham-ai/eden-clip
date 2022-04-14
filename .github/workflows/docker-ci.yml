@@ -108,9 +108,11 @@ jobs:
       - run: |
           echo "STEP_ID=1" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
+
+
       - name: Bump up eden-staging image
         run: |
-          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry\.aws\.abraham\.fun/abraham-ai/eden-clip:.*@${{ steps.prep.outputs.tagged_image }}@" apps/eden/eden-clip-stg/deployment-eden-clip.yaml
+          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry\.aws\.abraham\.fun\/abraham-ai\/eden-clip:.*@${{ steps.prep.outputs.tagged_image }}@" apps/eden/eden-clip-stg/deployment-eden-clip.yaml
       - run: |
           buildevents step $TRACE_ID $STEP_ID $STEP_START 'bump-up-eden-staging'       
 
