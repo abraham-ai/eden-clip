@@ -1,6 +1,5 @@
-name: Docker CI
+name: Build And Publish
 
-# for now build only new tags
 on:
   push:
     branches:
@@ -20,7 +19,9 @@ jobs:
       tagged_image: ${{ steps.prep.outputs.tagged_image }}
 
     steps:
-    - name: Observability
+    - uses: actions/checkout@v2
+
+    - name: Buildevents
       uses: kvrhdn/gha-buildevents@v1
       with:
         apikey: ${{ secrets.BUILDEVENTS_APIKEY }}
@@ -28,18 +29,24 @@ jobs:
         job-status: ${{ job.status }}
         matrix-key: ${{ matrix.value }}
 
-    - name: Check out the repo
-      uses: actions/checkout@v2
-
-    - name: Prepare
-      id: prep
+    - run: |
+        echo "STEP_ID=0" >> $GITHUB_ENV
+        echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
+    - id: prep
       run: |
         TAG=$(echo $GITHUB_SHA | head -c7)
         IMAGE="registry.aws.abraham.fun/abraham-ai/eden-clip"
         echo ::set-output name=tagged_image::${IMAGE}:${TAG}
         echo ::set-output name=tag::${TAG}
         echo ::set-output name=image::${IMAGE}
+        buildevents cmd $TRACE_ID $STEP_ID set-output -- sleep 1           
+    - run: |
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep'
 
+
+    - run: |
+        echo "STEP_ID=1" >> $GITHUB_ENV
+        echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
     - name: Log in to Docker Hub
       if: github.event_name != 'pull_request'       
       uses: docker/login-action@v1
@@ -47,19 +54,32 @@ jobs:
           registry: registry.aws.abraham.fun
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+    - run: |
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker-hub'          
 
+    - run: |
+        echo "STEP_ID=2" >> $GITHUB_ENV
+        echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
     - name: Build and Push
       uses: docker/build-push-action@v2
       with:
         context: .
         push: true #${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.prep.outputs.tagged_image }}
+    - run: |
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'          
 
+    - run: |
+        echo "STEP_ID=3" >> $GITHUB_ENV
+        echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
     - name: Pick up one tag
       id: first
       run: |
         IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | sed 1q)
         echo "::set-output name=imagetag::$IMAGE"
+        buildevents cmd $TRACE_ID $STEP_ID set-output -- sleep 1   
+    - run: |
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'        
 
   deploy:
     name: Deploy
@@ -68,7 +88,7 @@ jobs:
 
     steps:
 
-      - name: Observability
+      - name: Buildevents
         uses: kvrhdn/gha-buildevents@v1
         with:
           apikey: ${{ secrets.BUILDEVENTS_APIKEY }}
@@ -80,22 +100,41 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: abraham-ai/releases
-          ref: refs/heads/main
+          ref: feature/eden
           token: ${{ secrets.ONE1ZERO1ONE_PAT }}
-      
+
+      - run: |
+          echo "STEP_ID=0" >> $GITHUB_ENV
+          echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
       - name: Bump up eden-staging image
         run: |
-          sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.tagged_image }}@" releases/apps/eden/eden-clip-stg/deployment-eden-clip.yaml
-          
+          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.tagged_image }}@" releases/apps/eden/eden-clip-stg/deployment-eden-clip.yaml
+      - run: |
+          buildevents step $TRACE_ID $STEP_ID $STEP_START 'bump-up-eden-staging'       
+
+      - run: |
+          echo "STEP_ID=1" >> $GITHUB_ENV
+          echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
+      - name: Bump up eden-staging image
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "Abraham Releases"
           git commit -am "Bump eden-staging"
+      - run: |
+          buildevents step $TRACE_ID $STEP_ID $STEP_START 'commit'               
 
+      - run: |
+          echo "STEP_ID=2" >> $GITHUB_ENV
+          echo "STEP_START=$(date +%s)" >> $GITHUB_ENV     
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           repository: abraham-ai/releases
           branch: refs/heads/main
-          github_token: ${{ secrets.ONE1ZERO1ONE_PAT }}   
+          github_token: ${{ secrets.ONE1ZERO1ONE_PAT }} 
+      - run: |
+          buildevents step $TRACE_ID $STEP_ID $STEP_START 'push'
+
+      # here I somehow should wait until argo says ok OR 1 minute passed OR
+      # i could send the trace ID and argo could continue the trace ?          
