@@ -16,7 +16,7 @@ jobs:
     name: Build
     runs-on: ubuntu-20.04
     outputs:
-      tagged_image: ${{ steps.prep.outputs.tagged_image }}
+      tag: ${{ steps.prep.outputs.tag }}
 
     steps:
     - uses: actions/checkout@v2
@@ -29,6 +29,7 @@ jobs:
         job-status: ${{ job.status }}
         matrix-key: ${{ matrix.value }}
 
+    # Build-Step-0-prep-variables
     - run: |
         echo "STEP_ID=0" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -42,6 +43,7 @@ jobs:
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep-variables'
 
+    # Build-Step-1-login-docker-hub
     - run: |
         echo "STEP_ID=1" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -55,6 +57,7 @@ jobs:
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker-hub'          
 
+    # Build-Step-2-login-build-and-push
     - run: |
         echo "STEP_ID=2" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -65,19 +68,7 @@ jobs:
         push: true #${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.prep.outputs.tagged_image }}
     - run: |
-        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'          
-
-    - run: |
-        echo "STEP_ID=3" >> $GITHUB_ENV
-        echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
-    - name: Pick up one tag
-      id: first
-      run: |
-        IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | sed 1q)
-        echo "::set-output name=imagetag::$IMAGE"
-        buildevents cmd $TRACE_ID $STEP_ID set-output -- sleep 1   
-    - run: |
-        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'        
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'              
 
   deploy:
     name: Deploy
@@ -99,18 +90,33 @@ jobs:
           repository: abraham-ai/releases
           ref: feature/eden ######### CHANGEME
           token: ${{ secrets.ONE1ZERO1ONE_PAT }}
-
+      
+      # Deploy-Step-0-prep-variables
       - run: |
           echo "STEP_ID=0" >> $GITHUB_ENV
+          echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
+      - id: prep
+        run: |
+          IMAGE="registry.aws.abraham.fun/abraham-ai/eden-clip"
+          echo ::set-output name=tagged_image::${IMAGE}:${{ needs.build.outputs.tag }}
+          echo ::set-output name=tag::${{ needs.build.outputs.tag }}
+          echo ::set-output name=image::${IMAGE}         
+      - run: |
+          buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep-variables'          
+
+      # Deploy-Step-1-bump-up-eden-staging
+      - run: |
+          echo "STEP_ID=1" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
       - name: Bump up eden-staging image
         run: |
-          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ needs.build.outputs.tagged_image }}@" apps/eden/eden-clip-stg/deployment-eden-clip.yaml
+          buildevents cmd $TRACE_ID $STEP_ID sed -- sed -i -E "s@registry.aws.abraham.fun/abraham-ai/eden-clip:.*@${{ steps.prep.outputs.tagged_image }}@" apps/eden/eden-clip-stg/deployment-eden-clip.yaml
       - run: |
           buildevents step $TRACE_ID $STEP_ID $STEP_START 'bump-up-eden-staging'       
 
+      # Deploy-Step-2-commit-to-releases
       - run: |
-          echo "STEP_ID=1" >> $GITHUB_ENV
+          echo "STEP_ID=2" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
       - name: Commit files
         run: |
@@ -119,9 +125,10 @@ jobs:
           git commit -am "Bump eden-staging"
       - run: |
           buildevents step $TRACE_ID $STEP_ID $STEP_START 'commit-to-releases'               
-
+      
+      # Deploy-Step-2-push-releases
       - run: |
-          echo "STEP_ID=2" >> $GITHUB_ENV
+          echo "STEP_ID=3" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV     
       - name: Push changes
         uses: ad-m/github-push-action@master
