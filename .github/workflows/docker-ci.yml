@@ -115,7 +115,7 @@ jobs:
       - run: |
           echo "STEP_ID=1" >> $GITHUB_ENV
           echo "STEP_START=$(date +%s)" >> $GITHUB_ENV      
-      - name: Bump up eden-staging image
+
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
