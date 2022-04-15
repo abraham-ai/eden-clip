@@ -65,10 +65,9 @@ jobs:
         context: .
         file: Dockerfile.base
         push: true #${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.prep.outputs.tagged_image }}
+        tags: ${{ steps.prep.outputs.tagged_image }}, ${{ steps.prep.outputs.image }}:latest
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'   
-
 
   build:
     name: Build
@@ -124,7 +123,7 @@ jobs:
       with:
         context: .
         push: true #${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.prep.outputs.tagged_image }}
+        tags: ${{ steps.prep.outputs.tagged_image }},${{ steps.prep.outputs.image }}:latest
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-build-and-push'              
 
