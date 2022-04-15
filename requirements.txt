@@ -60,7 +60,7 @@ tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.0
 torch==1.9.0+cu111
 torchmetrics==0.5.1
-torchvision===0.10.0+cu111
+torchvision==0.10.0+cu111
 tqdm==4.62.2
 typing-extensions==3.10.0.2
 urllib3==1.26.6
