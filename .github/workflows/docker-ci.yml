@@ -27,7 +27,7 @@ jobs:
         job-status: ${{ job.status }}
         matrix-key: ${{ matrix.value }}
 
-    # Build-Step-0-prep-variables
+    # Build-Base-Step-0-prep-variables
     - run: |
         echo "STEP_ID=0" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -41,7 +41,7 @@ jobs:
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep-variables'
 
-    # Build-Step-1-login-docker
+    # Build-Base-Step-1-login-docker
     - run: |
         echo "STEP_ID=1" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -55,7 +55,7 @@ jobs:
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker'          
 
-    # Build-Step-2-login-build-and-push
+    # Build-Base-Step-2-login-build-and-push
     - run: |
         echo "STEP_ID=2" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -63,6 +63,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
+        file: Dockerfile.base
         push: true #${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.prep.outputs.tagged_image }}
     - run: |
