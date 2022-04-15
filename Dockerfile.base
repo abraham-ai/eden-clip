@@ -1,5 +1,5 @@
 # set base image (host OS)
-FROM registry.aws.abraham.fun/abraham-ai/eden-base
+FROM nvidia/cuda:11.4.2-base-ubuntu20.04
 
 # install python3 & dependencies
 RUN apt-get -y update \
@@ -13,4 +13,3 @@ RUN apt install -y wget
 RUN apt install -y curl
 RUN apt-get -y install python3
 RUN apt-get -y install python3-pip
-

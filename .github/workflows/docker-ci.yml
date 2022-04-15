@@ -41,7 +41,7 @@ jobs:
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep-variables'
 
-    # Build-Step-1-login-docker-hub
+    # Build-Step-1-login-docker
     - run: |
         echo "STEP_ID=1" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -53,7 +53,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker-hub'          
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker'          
 
     # Build-Step-2-login-build-and-push
     - run: |
@@ -100,7 +100,7 @@ jobs:
     - run: |
         buildevents step $TRACE_ID $STEP_ID $STEP_START 'prep-variables'
 
-    # Build-Step-1-login-docker-hub
+    # Build-Step-1-login-docker
     - run: |
         echo "STEP_ID=1" >> $GITHUB_ENV
         echo "STEP_START=$(date +%s)" >> $GITHUB_ENV
@@ -112,7 +112,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker-hub'          
+        buildevents step $TRACE_ID $STEP_ID $STEP_START 'login-docker'          
 
     # Build-Step-2-login-build-and-push
     - run: |
