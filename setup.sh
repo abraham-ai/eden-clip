@@ -5,9 +5,10 @@ pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pyt
 pip install omegaconf==2.1.2
 pip install ftfy==6.1.1
 pip install regex==2022.3.15
-pip install pytorch_lightning
-pip install imageio
-pip install kornia
+pip install pytorch_lightning==1.6.1
+pip install imageio==2.16.2
+pip install kornia==0.6.4
+pip install taming-transformers==0.0.1
 
 mkdir -p pretrained/imagenet
 wget -nv -O pretrained/imagenet/last.ckpt https://heibox.uni-heidelberg.de/f/867b05fc8c4841768640/?dl=1
