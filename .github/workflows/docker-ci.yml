@@ -39,7 +39,7 @@ jobs:
     name: Build Base
     needs: [ conditional_job_check_files ]
     runs-on: ubuntu-20.04
-    if: needs.conditional_job_check_files.outputs.dockerfile_base_changed == 'True
+    if: needs.conditional_job_check_files.outputs.dockerfile_base_changed == 'True'
     steps:
     - uses: actions/checkout@v2
 
