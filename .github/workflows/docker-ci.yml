@@ -29,7 +29,7 @@ jobs:
           $diff = git diff --name-only HEAD^ HEAD
 
           # Check if Dockerfile.base was changed
-          $SourceDiff = $diff | Where-Object { $_ -match 'Dockerfile' }
+          $SourceDiff = $diff | Where-Object { $_ -match 'Dockerfile.base' }
           $HasDiff = $SourceDiff.Length -gt 0
 
           # Set the output named "dockerfile_base_changed"
